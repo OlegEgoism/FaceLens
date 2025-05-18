@@ -17,11 +17,13 @@
     align-items: center;
 }
 
-.nav-logo {
-    font-size: 1.5rem;
+.nav-logo a {
+    text-decoration: none;
+    color: #007bff; /* или другой цвет, соответствующий дизайну */
     font-weight: bold;
-    color: #007bff;
+    font-size: 1.5rem;
 }
+
 
 .nav-links {
     list-style: none;
@@ -43,11 +45,12 @@
 
 /* Нижняя панель */
 .footer {
-    background-color: #ffffff;
+    background: #fff;
     width: 100%;
-    padding: 20px 40px;
-    margin-top: 40px;
     border-radius: 12px;
+    padding: 20px 40px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    margin-top: 40px;
 }
 
 .footer-container {
@@ -60,7 +63,8 @@
 }
 
 .footer-logo {
-    font-size: 1.3rem;
+    text-decoration: none;
+    font-size: 1rem;
     font-weight: bold;
     color: #007bff;
 }
@@ -108,7 +112,7 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 40px 20px;
+    padding: 20px 40px;
 }
 
 header {
@@ -132,8 +136,8 @@ main {
     max-width: 600px;
     width: 100%;
     border-radius: 12px;
-    padding: 30px 40px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    padding: 20px 40px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     margin-top: 40px;
 }
 
@@ -159,14 +163,25 @@ main {
 }
 
 a.button {
+    font-size: 14px;
     display: inline-block;
-    padding: 12px 28px;
+    padding: 6px 28px;
     background-color: #007bff;
     color: white;
-    border-radius: 8px;
+    border-radius: 12px;
     text-decoration: none;
     font-weight: 600;
     transition: background-color 0.3s ease;
+    text-align: center;
+    border: none;
+}
+
+.button-secondary {
+    background-color: #6c757d;
+}
+
+.button-secondary:hover {
+    background-color: #5a6268;
 }
 
 a.button:hover {
@@ -174,7 +189,7 @@ a.button:hover {
 }
 
 footer {
-    margin-top: 40px;
+    margin-top: 10px;
     font-size: 0.9rem;
     color: #888;
 }
@@ -209,7 +224,7 @@ form {
 
 .form-group label {
     font-weight: 600;
-    margin-bottom: 6px;
+    /*margin-bottom: 6px;*/
     color: #333;
 }
 
@@ -229,16 +244,20 @@ form {
 }
 
 .form-actions {
-    text-align: center;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 20px;
 }
 
 form .button {
+    font-size: 14px;
     background-color: #007bff;
     color: #fff;
-    padding: 12px 28px;
+    padding: 6px 28px;
     font-weight: 600;
     border: none;
-    border-radius: 8px;
+    border-radius: 12px;
     cursor: pointer;
     transition: background-color 0.3s;
 }
@@ -265,3 +284,50 @@ form .button:hover {
     color: #721c24;
 }
 
+
+/*Профиль*/
+.profile-container {
+    display: flex;
+    gap: 40px;
+    align-items: flex-start;
+    max-width: 800px;
+    margin: 0 auto;
+    background: #fff;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.profile-avatar img {
+    object-fit: cover;
+}
+
+.profile-details p {
+    margin-bottom: 10px;
+    font-size: 1rem;
+    color: #333;
+}
+
+
+
+.bio-toggle {
+    color: #007bff;
+    font-weight: 600;
+    margin-left: 10px;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.bio-toggle:hover {
+    text-decoration: underline;
+}
+
+
+.profile-avatar img {
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.profile-avatar img:hover {
+    transform: scale(1.2);
+}

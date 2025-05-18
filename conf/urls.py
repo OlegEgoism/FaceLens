@@ -18,16 +18,18 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path
-
-from face_lens.views import home, logout_view, register
+from django.contrib.auth import views as auth_views
+from face_lens.views import home, logout_view, register, profile, profile_edit
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('admin/', admin.site.urls),  # Админка
 
     path('', home, name='home'),
     path('register/', register, name='register'),  # Регистрация пользователя
-    # path('login/', auth_views.LoginView.as_view(), name='login'),  # Вход пользователя
+    path('login/', auth_views.LoginView.as_view(), name='login'),  # Вход пользователя
     path('logout/', logout_view, name='logout'),  # Выход пользователя
+    path('profile/', profile, name='profile'),  # Профиль
+    path('profile/edit/', profile_edit, name='profile_edit'),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

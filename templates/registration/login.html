@@ -1,21 +1,38 @@
 {% extends 'base.html' %}
-<title>{% block title %}Вход в систему{% endblock %}</title>
+{% block title %}Вход в систему{% endblock %}
 
 {% block content %}
-    <div class="welcome-container">
-        <h2 class="welcome-title">Вход в систему</h2>
-        <form method="post" class="login-form">
-            {% csrf_token %}
-            <div class="form-group">
-                <label for="username" class="form-label">Логин:</label>
-                <input type="text" id="username" name="username" required>
-            </div>
-            <div class="form-group">
-                <label for="password" class="form-label">Пароль:</label>
-                <input type="password" id="password" name="password" required>
-            </div>
-            <button type="submit" class="btn">Войти</button>
-        </form>
-        <h3>Нет аккаунта? <a href="#">Зарегистрироваться</a></h3>
+<h2 class="welcome-title">Вход в систему</h2>
+<hr style="margin-bottom: 20px;">
+
+{% if messages %}
+<div class="messages">
+    {% for message in messages %}
+    <div class="alert {% if message.tags == 'success' %}alert-success{% else %}alert-error{% endif %}">
+        {{ message }}
     </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<form method="post">
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="username">Логин:</label>
+        <input type="text" name="username" id="username" required class="form-control">
+    </div>
+    <div class="form-group">
+        <label for="password">Пароль:</label>
+        <input type="password" name="password" id="password" required class="form-control">
+    </div>
+
+    <div class="form-actions">
+        <button type="submit" class="button">Войти</button>
+    </div>
+</form>
+
+<p class="button-all">
+    Нет аккаунта?
+    <a href="{% url 'register' %}" style="color: #007bff;">Зарегистрироваться</a>
+</p>
 {% endblock %}

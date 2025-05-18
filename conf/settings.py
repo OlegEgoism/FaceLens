@@ -144,3 +144,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'face_lens.User'
 
+# URL перенаправления после входа и выхода
+LOGIN_URL = 'login'  # Перенаправление при попытке доступа без авторизации
+LOGOUT_URL = 'logout'
+
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'

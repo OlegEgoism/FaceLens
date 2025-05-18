@@ -78,3 +78,14 @@ class UserRegistrationForm(UserCreationForm):
             user.save()
         return user
 
+
+
+class UserUpdateForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['username', 'first_name', 'last_name', 'email', 'phone', 'birthday', 'bio']
+        widgets = {
+            'birthday': forms.DateInput(attrs={'type': 'date'}),
+            'bio': forms.Textarea(attrs={'rows': 3}),
+        }
+

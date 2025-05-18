@@ -3,12 +3,13 @@ from django.contrib.auth import logout, login
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 
-from face_lens.forms import UserRegistrationForm
+from face_lens.forms import UserRegistrationForm, UserUpdateForm
 
 
 def home(request):
     """Главная страница"""
     return render(request, 'home.html')
+
 
 def register(request):
     """Регистрация пользователя"""
@@ -32,3 +33,25 @@ def logout_view(request):
     """Выход пользователя"""
     logout(request)
     return redirect('home')
+
+
+@login_required
+def profile(request):
+    if request.method == 'POST' and 'avatar' in request.FILES:
+        avatar = request.FILES['avatar']
+        request.user.avatar = avatar
+        request.user.save()
+        return redirect('profile')
+    return render(request, 'profile.html')
+
+
+@login_required
+def profile_edit(request):
+    if request.method == 'POST':
+        form = UserUpdateForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            return redirect('profile')
+    else:
+        form = UserUpdateForm(instance=request.user)
+    return render(request, 'profile_edit.html', {'form': form})

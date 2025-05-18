@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block title %}Профиль пользователя{% endblock %}
+
+{% block content %}
+<h2 class="welcome-title">Профиль</h2>
+<hr style="margin-bottom: 20px;">
+
+<form method="post" enctype="multipart/form-data" id="avatar-form">
+    {% csrf_token %}
+    <div class="profile-avatar" style="cursor: pointer;" onclick="document.getElementById('avatar-input').click();">
+        {% if user.avatar %}
+        <img src="{{ user.avatar.url }}" alt="Аватар" width="100" height="100" style="border-radius: 50%;">
+        {% else %}
+        <img src="/media/avatar/default/no_photo.png" alt="Нет фото" width="100" height="100" style="border-radius: 50%;">
+        {% endif %}
+    </div>
+    <input type="file" name="avatar" id="avatar-input" accept="image/*" style="display: none;" onchange="document.getElementById('avatar-form').submit();">
+</form>
+
+<div class="profile-details">
+    <p><strong>Логин:</strong> {{ user.username|default:"Нет информации" }}</p>
+    <p><strong>Имя:</strong> {{ user.first_name|default:"Нет информации" }}</p>
+    <p><strong>Фамилия:</strong> {{ user.last_name|default:"Нет информации" }}</p>
+    <p><strong>Email:</strong> {{ user.email|default:"Нет информации" }}</p>
+    <p><strong>Телефон:</strong>
+        {% if user.phone %}{{ user.phone }}{% else %}Нет информации{% endif %}
+        {% if user.phone_country %} ({{ user.phone_country }}){% endif %}
+    </p>
+    <p><strong>Дата рождения:</strong>
+        {% if user.birthday %}
+        {{ user.birthday|date:"d.m.Y" }}
+        {% else %}
+        Нет информации
+        {% endif %}
+    </p>
+    <p><strong>Биография:</strong></p>
+    <div class="bio-container">
+    <span id="bio-short">
+        {{ user.bio|truncatechars:100|default:"Нет информации" }}
+        {% if user.bio and user.bio|length > 100 %}
+            <a href="#" class="bio-toggle" onclick="toggleBio(event)">Показать полностью</a>
+        {% endif %}
+    </span>
+        {% if user.bio and user.bio|length > 100 %}
+        <span id="bio-full" style="display: none;">
+        {{ user.bio }}
+        <a href="#" class="bio-toggle" onclick="toggleBio(event)">Скрыть</a>
+    </span>
+        {% endif %}
+    </div>
+
+</div>
+
+
+<div class="form-actions">
+    <a href="{% url 'profile_edit' %}" class="button">Редактировать </a>
+</div>
+
+
+<script>
+    function toggleBio(event) {
+        event.preventDefault();
+        const shortText = document.getElementById('bio-short');
+        const fullText = document.getElementById('bio-full');
+        if (shortText.style.display === 'none') {
+            shortText.style.display = 'inline';
+            fullText.style.display = 'none';
+        } else {
+            shortText.style.display = 'none';
+            fullText.style.display = 'inline';
+        }
+    }
+</script>
+
+
+{% endblock %}
