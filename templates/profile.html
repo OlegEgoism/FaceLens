@@ -1,25 +1,30 @@
 {% extends 'base.html' %}
 
-{% block title %}Профиль пользователя{% endblock %}
+{% block title %}Профиль {{user.username}}{% endblock %}
 
 {% block content %}
-<h2 class="welcome-title">Профиль</h2>
+<h1 class="welcome-title" style="position: relative;">
+    Профиль {{user.username}}
+    <a href="{% url 'profile_edit' %}" class="edit-icon" title="Редактировать">
+        ✏️
+    </a>
+</h1>
 <hr style="margin-bottom: 20px;">
 
 <form method="post" enctype="multipart/form-data" id="avatar-form">
     {% csrf_token %}
-    <div class="profile-avatar" style="cursor: pointer;" onclick="document.getElementById('avatar-input').click();">
+    <div class="avatar-wrapper" onclick="document.getElementById('avatar-input').click();">
         {% if user.avatar %}
-        <img src="{{ user.avatar.url }}" alt="Аватар" width="100" height="100" style="border-radius: 50%;">
+        <img src="{{ user.avatar.url }}" alt="Аватар" class="avatar-image">
         {% else %}
-        <img src="/media/avatar/default/no_photo.png" alt="Нет фото" width="100" height="100" style="border-radius: 50%;">
+        <img src="/media/avatar/default/no_photo.png" alt="Нет фото" class="avatar-image">
         {% endif %}
+        <span class="avatar-edit-icon">✏️</span>
     </div>
     <input type="file" name="avatar" id="avatar-input" accept="image/*" style="display: none;" onchange="document.getElementById('avatar-form').submit();">
 </form>
-
+<br>
 <div class="profile-details">
-    <p><strong>Логин:</strong> {{ user.username|default:"Нет информации" }}</p>
     <p><strong>Имя:</strong> {{ user.first_name|default:"Нет информации" }}</p>
     <p><strong>Фамилия:</strong> {{ user.last_name|default:"Нет информации" }}</p>
     <p><strong>Email:</strong> {{ user.email|default:"Нет информации" }}</p>
@@ -34,8 +39,15 @@
         Нет информации
         {% endif %}
     </p>
-    <p><strong>Биография:</strong></p>
-    <div class="bio-container">
+    <p><strong>Возраст:</strong>
+        {% if user.birthday %}
+        {{ user.get_age_display }}
+        {% else %}
+        Нет информации
+        {% endif %}
+    </p>
+    <p style="text-align: center;"><strong>Биография</strong></p>
+    <div>
     <span id="bio-short">
         {{ user.bio|truncatechars:100|default:"Нет информации" }}
         {% if user.bio and user.bio|length > 100 %}
@@ -49,12 +61,6 @@
     </span>
         {% endif %}
     </div>
-
-</div>
-
-
-<div class="form-actions">
-    <a href="{% url 'profile_edit' %}" class="button">Редактировать </a>
 </div>
 
 
@@ -72,6 +78,4 @@
         }
     }
 </script>
-
-
 {% endblock %}

@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block title %}Настройки пользователя{% endblock %}
+
+{% block content %}
+<h1 class="welcome-title">Настройки</h1>
+<hr style="margin-bottom: 20px;">
+
+<form method="post">
+    {% csrf_token %}
+    {{ formset.management_form }}
+
+    {% for form in formset %}
+    {{ form.id }} {# важный скрытый input с id #}
+    <div class="form-group">
+        <label for="{{ form.auto_photo.id_for_label }}"><strong>Автофото:</strong></label>
+        <label class="switch">
+            {{ form.auto_photo }}
+            <span class="slider"></span>
+        </label>
+    </div>
+
+
+    <div class="form-group">
+        <label>Время:</label> {{ form.notify_time }}
+    </div>
+    {% if form.errors %}
+    <div class="form-errors">
+        {{ form.errors }}
+    </div>
+    {% endif %}
+    {% endfor %}
+    <div class="form-actions">
+        <button type="submit" class="button">Сохранить</button>
+    </div>
+</form>
+
+{% endblock %}

@@ -3,8 +3,7 @@ from django import forms
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from django.contrib.auth.forms import UserCreationForm
-from face_lens.models import User
-
+from face_lens.models import User, UserSettings
 
 class UserRegistrationForm(UserCreationForm):
     """Регистрация пользователя"""
@@ -17,7 +16,7 @@ class UserRegistrationForm(UserCreationForm):
 
     class Meta:
         model = User
-        fields = ("username", "first_name", "last_name", "contact", "password1", "password2")
+        fields = "username", "first_name", "last_name", "contact", "password1", "password2"
 
     def clean(self):
         cleaned_data = super().clean()
@@ -80,12 +79,49 @@ class UserRegistrationForm(UserCreationForm):
 
 
 
+
 class UserUpdateForm(forms.ModelForm):
     class Meta:
         model = User
-        fields = ['username', 'first_name', 'last_name', 'email', 'phone', 'birthday', 'bio']
+        fields = ('first_name', 'last_name', 'email', 'phone', 'birthday', 'bio')
         widgets = {
             'birthday': forms.DateInput(attrs={'type': 'date'}),
             'bio': forms.Textarea(attrs={'rows': 3}),
         }
 
+    def clean_phone(self):
+        phone = self.cleaned_data.get('phone')
+        if phone:
+            try:
+                phone_number = phonenumbers.parse(phone, region=None)
+                if not phonenumbers.is_valid_number(phone_number):
+                    raise ValidationError("Неверный номер телефона.")
+            except Exception:
+                raise ValidationError("Некорректный формат телефона.")
+
+            formatted_number = phonenumbers.format_number(phone_number, phonenumbers.PhoneNumberFormat.E164)
+            self.cleaned_data['phone'] = formatted_number
+            self.cleaned_data['phone_country'] = phonenumbers.region_code_for_number(phone_number)
+        else:
+            self.cleaned_data['phone_country'] = None
+
+        return self.cleaned_data['phone']
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.phone_country = self.cleaned_data.get('phone_country', None)
+        if commit:
+            user.save()
+        return user
+
+
+
+class UserSettingsForm(forms.ModelForm):
+    """Настройки профиля"""
+
+    class Meta:
+        model = UserSettings
+        fields = 'auto_photo', 'notify_time'
+        widgets = {
+            'notify_time': forms.TimeInput(format='%H:%M:%S', attrs={'type': 'time'}),
+        }

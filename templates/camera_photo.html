@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block title %}Сделать фото{% endblock %}
+
+{% block content %}
+<h1 class="welcome-title">Сделать фото с камеры</h1>
+<hr style="margin-bottom: 20px;">
+
+<div style="display: flex; justify-content: center; align-items: center; margin: 20px 0;">
+    <video id="video" width="500" autoplay style="border-radius: 10px;"></video>
+</div>
+
+<canvas id="canvas" style="display:none;"></canvas>
+
+<div style="text-align: center; margin-top: 20px;">
+    <button id="captureBtn" class="button">📷 Сделать фото</button>
+</div>
+
+<p id="status" style="margin-top: 10px;"></p>
+
+<script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const captureBtn = document.getElementById('captureBtn');
+    const status = document.getElementById('status');
+
+    navigator.mediaDevices.getUserMedia({video: true})
+        .then(stream => {
+            video.srcObject = stream;
+        })
+        .catch(error => {
+            console.error("Ошибка доступа к камере", error);
+            status.innerText = "Не удалось получить доступ к камере.";
+        });
+
+    captureBtn.addEventListener('click', function () {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+        const imageData = canvas.toDataURL('image/jpeg');
+
+        fetch("{% url 'save_photo' %}", {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+                'image_data': imageData
+            })
+        }).then(response => {
+            if (response.redirected) {
+                window.location.href = response.url;
+            } else {
+                status.innerHTML = 'Фото сохранено! <a href="{% url "profile_photos" %}" style="margin-left: 10px; color: #007bff;">Перейти к фото</a>';
+            }
+        }).catch(err => {
+            console.error("Ошибка отправки:", err);
+            status.innerText = "Ошибка при сохранении фото.";
+        });
+    });
+</script>
+
+{% endblock %}

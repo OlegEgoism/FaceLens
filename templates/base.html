@@ -16,12 +16,25 @@
 
 <body>
 
+
+{% if messages %}
+<div class="messages">
+    {% for message in messages %}
+    <div class="message {{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+</div>
+{% endif %}
+
+
 <!-- Навигационная панель -->
 <nav class="navbar">
     <div class="nav-container">
         <div class="nav-logo"><a href="{% url 'home' %}">FaceLens</a></div>
         <ul class="nav-links">
             {% if user.is_authenticated %}
+            <li><a href="{% url 'camera_photo' %}" class="nav-button">Сделать фото</a></li>
+            <li><a href="{% url 'profile_photos' %}" class="nav-button">Фото альбом</a></li>
+            <li><a href="{% url 'profile_settings' %}" class="nav-button">Настройки</a></li>
             <li><a href="{% url 'profile' %}" class="nav-button">Профиль</a></li>
             <li><a href="{% url 'logout' %}" class="nav-button">Выйти</a></li>
             {% else %}
