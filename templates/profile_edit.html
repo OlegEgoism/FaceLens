@@ -8,35 +8,69 @@
 
 <form method="post">
     {% csrf_token %}
+
+    {% if form.non_field_errors %}
+    <div class="alert-error">
+        {% for error in form.non_field_errors %}
+        <p>{{ error }}</p>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+
     <div class="form-group">
         <label for="first_name">Имя:</label>
         {{ form.first_name }}
+        {% for error in form.first_name.errors %}
+        <div class="alert-error">{{ error }}</div>
+        {% endfor %}
     </div>
+
     <div class="form-group">
         <label for="last_name">Фамилия:</label>
         {{ form.last_name }}
+        {% for error in form.last_name.errors %}
+        <div class="alert-error">{{ error }}</div>
+        {% endfor %}
     </div>
+
     <div class="form-group">
         <label for="email">Email:</label>
         {{ form.email }}
+        {% for error in form.email.errors %}
+        <div class="alert-error">{{ error }}</div>
+        {% endfor %}
     </div>
+
     <div class="form-group">
         <label for="phone">Телефон:</label>
         {{ form.phone }}
+        {% for error in form.phone.errors %}
+        <div class="alert-error">{{ error }}</div>
+        {% endfor %}
     </div>
+
     <div class="form-group">
         <label for="birthday">Дата рождения:</label>
         {{ form.birthday }}
+        {% for error in form.birthday.errors %}
+        <div class="alert-error">{{ error }}</div>
+        {% endfor %}
     </div>
+
     <div class="form-group">
         <label for="bio">Биография:</label>
         {{ form.bio }}
+        {% for error in form.bio.errors %}
+        <div class="alert-error">{{ error }}</div>
+        {% endfor %}
     </div>
 
-<div class="form-actions">
-    <button type="submit" class="button">Сохранить</button>
-    <a href="{% url 'profile' %}" class="button">Назад</a>
-</div>
+
+    <div class="form-actions">
+        <button type="submit" class="button">Сохранить</button>
+        <a href="{% url 'profile' %}" class="button">Назад</a>
+    </div>
 
 </form>
 {% endblock %}

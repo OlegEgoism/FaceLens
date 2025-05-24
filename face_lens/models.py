@@ -34,18 +34,6 @@ class User(AbstractUser, DateStamp):
     def __str__(self):
         return self.username
 
-    def save(self, *args, **kwargs):
-        if self.avatar:
-            img = Image.open(self.avatar)
-            if img.mode not in ('L', 'RGB', 'RGBA'):
-                img = img.convert('RGB')
-            img = img.resize((400, 400), Image.ANTIALIAS)
-            buffer = BytesIO()
-            img.save(buffer, format='JPEG')
-            buffer.seek(0)
-            self.avatar.save(self.avatar.name, ContentFile(buffer.read()), save=False)
-        super().save(*args, **kwargs)
-
     def get_age_display(self):
         if not self.birthday:
             return None
@@ -109,7 +97,7 @@ class UserSettings(DateStamp):
     class Meta:
         verbose_name = 'Настройки пользователя'
         verbose_name_plural = 'Настройки пользователей'
-        # unique_together = 'user', 'auto_photo', 'notify_time'
+        unique_together = 'user', 'auto_photo', 'notify_time'
 
     def __str__(self):
         return f"Настройки {self.user.username}"

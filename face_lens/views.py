@@ -58,12 +58,20 @@ def profile_edit(request):
         if form.is_valid():
             form.save()
             return redirect('profile')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"Ошибка в поле '{field}': {error}")
     else:
         form = UserUpdateForm(instance=request.user)
     return render(request, 'profile_edit.html', {'form': form})
 
 
 
+
+
+from django.db import IntegrityError
+from django.forms import ValidationError
 
 @login_required
 def profile_settings(request):
@@ -79,8 +87,18 @@ def profile_settings(request):
     if request.method == 'POST':
         formset = SettingsFormSet(request.POST, queryset=queryset)
         if formset.is_valid():
-            formset.save()
-            return redirect('profile_settings')
+            try:
+                formset.save()
+                return redirect('home')
+            except IntegrityError as e:
+                # Добавляем общую ошибку к formset
+                formset.non_form_errors().append(
+                    "Ошибка: такие настройки уже существуют."
+                )
+                # Альтернативно можно добавить в formset._non_form_errors:
+                formset._non_form_errors = formset.error_class([
+                    "Такие настройки уже существуют!"
+                ])
         else:
             print("Форма невалидна", formset.errors)
     else:
@@ -88,10 +106,13 @@ def profile_settings(request):
     return render(request, 'profile_settings.html', {'formset': formset})
 
 
+
+
+
+
+
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render
-from .models import Photo
 
 PER_PAGE_OPTIONS = [1, 20, 50, 100]
 
@@ -121,7 +142,6 @@ def profile_photos(request):
 import base64
 from django.utils import timezone
 from django.core.files.base import ContentFile
-from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from .models import Photo
 

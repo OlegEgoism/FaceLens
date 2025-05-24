@@ -1,9 +1,12 @@
+import re
+
 import phonenumbers
 from django import forms
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from django.contrib.auth.forms import UserCreationForm
 from face_lens.models import User, UserSettings
+
 
 class UserRegistrationForm(UserCreationForm):
     """Регистрация пользователя"""
@@ -78,42 +81,69 @@ class UserRegistrationForm(UserCreationForm):
         return user
 
 
-
-
 class UserUpdateForm(forms.ModelForm):
+    birthday = forms.DateField(
+        required=False,
+        input_formats=['%Y-%m-%d'],
+        widget=forms.DateInput(
+            attrs={'type': 'date'},
+            format='%Y-%m-%d'
+        )
+    )
+
     class Meta:
         model = User
         fields = ('first_name', 'last_name', 'email', 'phone', 'birthday', 'bio')
         widgets = {
-            'birthday': forms.DateInput(attrs={'type': 'date'}),
             'bio': forms.Textarea(attrs={'rows': 3}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.birthday:
+            self.fields['birthday'].initial = self.instance.birthday.strftime('%Y-%m-%d')
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if email:
+            try:
+                validate_email(email)
+            except ValidationError:
+                raise ValidationError("Некорректный формат email.")
+            if User.objects.exclude(pk=self.instance.pk).filter(email=email).exists():
+                raise ValidationError("Почта уже используется другим пользователем.")
+        return email
 
     def clean_phone(self):
         phone = self.cleaned_data.get('phone')
         if phone:
             try:
-                phone_number = phonenumbers.parse(phone, region=None)
+                sanitized_phone = re.sub(r'[^\d+]', '', phone)
+                if not sanitized_phone.startswith('+'):
+                    raise ValidationError("Телефон должен начинаться с '+' и содержать код страны.")
+                phone_number = phonenumbers.parse(sanitized_phone, None)
                 if not phonenumbers.is_valid_number(phone_number):
-                    raise ValidationError("Неверный номер телефона.")
+                    raise ValidationError("Номер телефона некорректен. Проверьте формат и код страны.")
             except Exception:
                 raise ValidationError("Некорректный формат телефона.")
 
             formatted_number = phonenumbers.format_number(phone_number, phonenumbers.PhoneNumberFormat.E164)
+            if User.objects.exclude(pk=self.instance.pk).filter(phone=formatted_number).exists():
+                raise ValidationError("Телефон уже используется другим пользователем.")
             self.cleaned_data['phone'] = formatted_number
             self.cleaned_data['phone_country'] = phonenumbers.region_code_for_number(phone_number)
+            return formatted_number
         else:
             self.cleaned_data['phone_country'] = None
-
-        return self.cleaned_data['phone']
+            return phone
 
     def save(self, commit=True):
         user = super().save(commit=False)
-        user.phone_country = self.cleaned_data.get('phone_country', None)
+        user.phone_country = self.cleaned_data.get('phone_country')
+        user.birthday = self.cleaned_data.get('birthday')  # <-- явно задаём!
         if commit:
             user.save()
         return user
-
 
 
 class UserSettingsForm(forms.ModelForm):
