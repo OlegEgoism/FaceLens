@@ -46,21 +46,22 @@
         Нет информации
         {% endif %}
     </p>
-<p style="text-align: center;"><strong>Биография</strong></p>
-<div>
+    <p style="text-align: center;"><strong>Биография</strong></p>
+    <div>
     <span id="bio-short">
-        {{ user.bio|truncatechars:100|linebreaks|default:"Нет информации" }}
+        {{ user.bio|default_if_none:"Нет информации"|truncatechars:100|linebreaks }}
         {% if user.bio and user.bio|length > 100 %}
             <a href="#" class="bio-toggle" onclick="toggleBio(event)">Показать</a>
         {% endif %}
     </span>
-    {% if user.bio and user.bio|length > 100 %}
-    <span id="bio-full" style="display: none;">
+        {% if user.bio and user.bio|length > 100 %}
+        <span id="bio-full" style="display: none;">
         {{ user.bio|linebreaks }}
         <a href="#" class="bio-toggle" onclick="toggleBio(event)">Скрыть</a>
     </span>
-    {% endif %}
-</div>
+        {% endif %}
+    </div>
+
 </div>
 
 

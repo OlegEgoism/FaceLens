@@ -1,13 +1,18 @@
+import base64
 from django.contrib import messages
 from django.contrib.auth import logout, login
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.forms import modelformset_factory
+from django.forms.utils import ErrorList
 from django.shortcuts import render, redirect, get_object_or_404
-
+from django.db import IntegrityError
 from django.forms import modelformset_factory
 from face_lens.forms import UserRegistrationForm, UserUpdateForm, UserSettingsForm
-from face_lens.models import  UserSettings
+from face_lens.models import UserSettings, Photo
+from django.utils import timezone
+from django.core.files.base import ContentFile
+from django.contrib.auth.decorators import login_required
 
 
 def home(request):
@@ -67,15 +72,9 @@ def profile_edit(request):
     return render(request, 'profile_edit.html', {'form': form})
 
 
-
-
-
-from django.db import IntegrityError
-from django.forms import ValidationError
-
 @login_required
 def profile_settings(request):
-    """Настройки профиля"""
+    """Настройки"""
     user = request.user
     SettingsFormSet = modelformset_factory(
         UserSettings,
@@ -87,17 +86,16 @@ def profile_settings(request):
     if request.method == 'POST':
         formset = SettingsFormSet(request.POST, queryset=queryset)
         if formset.is_valid():
+            instances = formset.save(commit=False)
             try:
-                formset.save()
+                for instance in instances:
+                    if not instance.user_id:
+                        instance.user = user
+                    instance.save()
                 return redirect('home')
-            except IntegrityError as e:
-                # Добавляем общую ошибку к formset
-                formset.non_form_errors().append(
-                    "Ошибка: такие настройки уже существуют."
-                )
-                # Альтернативно можно добавить в formset._non_form_errors:
-                formset._non_form_errors = formset.error_class([
-                    "Такие настройки уже существуют!"
+            except IntegrityError:
+                formset._non_form_errors = ErrorList([
+                    "Такие настройки уже существуют! Проверьте, что вы не дублируете записи."
                 ])
         else:
             print("Форма невалидна", formset.errors)
@@ -106,19 +104,9 @@ def profile_settings(request):
     return render(request, 'profile_settings.html', {'formset': formset})
 
 
-
-
-
-
-
-from django.core.paginator import Paginator
-from django.contrib.auth.decorators import login_required
-
-PER_PAGE_OPTIONS = [1, 20, 50, 100]
-
-
 @login_required
 def profile_photos(request):
+    """Фото альбом"""
     per_page = request.GET.get('per_page', '10')
     try:
         per_page = int(per_page)
@@ -139,20 +127,15 @@ def profile_photos(request):
     })
 
 
-import base64
-from django.utils import timezone
-from django.core.files.base import ContentFile
-from django.contrib.auth.decorators import login_required
-from .models import Photo
+@login_required
+def camera(request):
+    """Камера"""
+    return render(request, 'camera.html')
 
 
 @login_required
-def camera_photo_view(request):
-    return render(request, 'camera_photo.html')
-
-
-@login_required
-def save_photo(request):
+def camera_save(request):
+    """Сделать фото"""
     if request.method == 'POST':
         image_data = request.POST.get('image_data')
         if image_data:
@@ -163,6 +146,18 @@ def save_photo(request):
             return redirect('profile_photos')
     return redirect('camera_photo')
 
+
+
+
+
+
+
+
+
+from django.core.paginator import Paginator
+from django.contrib.auth.decorators import login_required
+
+PER_PAGE_OPTIONS = [1, 20, 50, 100]
 
 from deepface import DeepFace
 from .models import FaceAnalysis
@@ -192,19 +187,18 @@ def estimate_skin_metrics(image_path, estimated_age, emotion):
     wrinkles_score = max(0, min(10, 10 - wrinkles_score))
 
     blur = cv2.GaussianBlur(gray, (9, 9), 0)
-    acne_score = np.std(gray - blur) * 2
-    acne_score = max(0, min(10, 10 - acne_score))
 
     base_score = 10 - (estimated_age or 30) / 10
     if emotion in ['sad', 'angry', 'disgust']:
         base_score -= 2
     skin_health_score = max(0, min(10, base_score))
 
-    return round(skin_health_score, 2), round(wrinkles_score, 2), round(acne_score, 2)
+    return round(skin_health_score, 2), round(wrinkles_score, 2)
 
 
 @login_required
 def analyze_photo(request, photo_id):
+    """Анализ фото"""
     photo = get_object_or_404(Photo, id=photo_id, user=request.user)
 
     try:
@@ -222,7 +216,7 @@ def analyze_photo(request, photo_id):
         emotion_rus = EMOTION_TRANSLATIONS.get(emotion, emotion.capitalize())
 
         # Эвристическая оценка кожи
-        skin_health_score, wrinkles_score, acne_score = estimate_skin_metrics(str(tmp_path), age, emotion)
+        skin_health_score, wrinkles_score = estimate_skin_metrics(str(tmp_path), age, emotion)
 
         # Сохранение анализа
         FaceAnalysis.objects.update_or_create(
@@ -231,10 +225,8 @@ def analyze_photo(request, photo_id):
                 "estimated_age": age,
                 "emotion_detected": emotion_rus,
                 "mood": emotion_rus,
-                "health_comment": f"Анализ выполнен автоматически: {emotion_rus.lower()}",
                 "skin_health_score": skin_health_score,
                 "wrinkles_score": wrinkles_score,
-                "acne_score": acne_score,
             }
         )
         messages.success(request, "Анализ успешно выполнен.")

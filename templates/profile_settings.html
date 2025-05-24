@@ -6,62 +6,47 @@
 <h1 class="welcome-title">Настройки</h1>
 <hr style="margin-bottom: 20px;">
 
-<form method="post">
+<form method="post" id="settings-form">
     {% csrf_token %}
     {{ formset.management_form }}
 
-    {# Модальное окно ошибки #}
     {% if formset.non_form_errors %}
-    <div id="errorModal" class="modal">
-      <div class="modal-content">
-        <span id="closeModal" class="close">&times;</span>
-        <p>{{ formset.non_form_errors.0 }}</p>
-      </div>
+    <div class="alert-error">
+        {{ formset.non_form_errors }}
     </div>
     {% endif %}
 
-    {% for form in formset %}
-    {{ form.id }} {# скрытое поле с id #}
-    <div class="form-group">
-        <label for="{{ form.auto_photo.id_for_label }}"><strong>Автофото:</strong></label>
-        <label class="switch">
-            {{ form.auto_photo }}
-            <span class="slider"></span>
-        </label>
+    <div id="formset-container">
+        {% for form in formset %}
+       <div class="form-settings-item">
+    {{ form.id }}
+
+    <div class="form-row">
+        <div class="form-group">
+            <label for="{{ form.auto_photo.id_for_label }}"><strong>Автофото:</strong></label>
+            <label class="switch">
+                {{ form.auto_photo }}
+                <span class="slider"></span>
+            </label>
+        </div>
+
+        <div class="form-group">
+           {{ form.notify_time }}
+        </div>
     </div>
 
-    <div class="form-group">
-        <label>Время:</label> {{ form.notify_time }}
-    </div>
     {% if form.errors %}
     <div class="form-errors">
         {{ form.errors }}
     </div>
     {% endif %}
-    {% endfor %}
+</div>
+
+        {% endfor %}
+    </div>
 
     <div class="form-actions">
         <button type="submit" class="button">Сохранить</button>
     </div>
 </form>
-
-
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    var modal = document.getElementById("errorModal");
-    if (modal) {
-        modal.style.display = "block"; // показать окно
-        var span = document.getElementById("closeModal");
-        span.onclick = function() {
-            modal.style.display = "none"; // закрыть по кресту
-        }
-        window.onclick = function(event) {
-            if (event.target == modal) {
-                modal.style.display = "none"; // закрыть по клику вне окна
-            }
-        }
-    }
-});
-</script>
-
 {% endblock %}

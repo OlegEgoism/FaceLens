@@ -1,5 +1,4 @@
 {% load static %}
-<!DOCTYPE html>
 <html lang="ru">
 
 <head>
@@ -32,7 +31,7 @@
         <div class="nav-logo"><a href="{% url 'home' %}">FaceLens</a></div>
         <ul class="nav-links">
             {% if user.is_authenticated %}
-            <li><a href="{% url 'camera_photo' %}" class="nav-button">Сделать фото</a></li>
+            <li><a href="{% url 'camera' %}" class="nav-button">Камера</a></li>
             <li><a href="{% url 'profile_photos' %}" class="nav-button">Фото альбом</a></li>
             <li><a href="{% url 'profile_settings' %}" class="nav-button">Настройки</a></li>
             <li><a href="{% url 'profile' %}" class="nav-button">Профиль</a></li>

@@ -21,10 +21,8 @@
     <p><strong>Оценка возраста:</strong> {{ photo.analysis.estimated_age }}</p>
     <p><strong>Оценка кожи:</strong> {{ photo.analysis.skin_health_score }}</p>
     <p><strong>Оценка морщин:</strong> {{ photo.analysis.wrinkles_score }}</p>
-    <p><strong>Оценка сыпи:</strong> {{ photo.analysis.acne_score }}</p>
     <p><strong>Настроение:</strong> {{ photo.analysis.mood }}</p>
     <p><strong>Эмоция:</strong> {{ photo.analysis.emotion_detected }}</p>
-    <p><strong>Комментарий:</strong> {{ photo.analysis.health_comment|default:"—" }}</p>
     {% else %}
     <p><em>Анализ не проведён.</em></p>
     {% endif %}

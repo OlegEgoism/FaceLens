@@ -82,6 +82,7 @@ class UserRegistrationForm(UserCreationForm):
 
 
 class UserUpdateForm(forms.ModelForm):
+    """Редактировать профиль пользователя"""
     birthday = forms.DateField(
         required=False,
         input_formats=['%Y-%m-%d'],
@@ -140,7 +141,7 @@ class UserUpdateForm(forms.ModelForm):
     def save(self, commit=True):
         user = super().save(commit=False)
         user.phone_country = self.cleaned_data.get('phone_country')
-        user.birthday = self.cleaned_data.get('birthday')  # <-- явно задаём!
+        user.birthday = self.cleaned_data.get('birthday')
         if commit:
             user.save()
         return user

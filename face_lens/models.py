@@ -1,12 +1,8 @@
 from datetime import date
-
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from PIL import Image
-from io import BytesIO
-from django.core.files.base import ContentFile
 
 
 class DateStamp(models.Model):
@@ -69,34 +65,32 @@ class FaceAnalysis(DateStamp):
     estimated_age = models.PositiveSmallIntegerField(verbose_name='Оценка возраста', null=True, blank=True)
     skin_health_score = models.DecimalField(verbose_name='Оценка кожи', max_digits=4, decimal_places=2, null=True, blank=True)
     wrinkles_score = models.DecimalField(verbose_name='Оценка морщин', max_digits=4, decimal_places=2, null=True, blank=True)
-    acne_score = models.DecimalField(verbose_name='Оценка сыпи', max_digits=4, decimal_places=2, null=True, blank=True)
     mood = models.CharField(verbose_name='Настроение', max_length=50, blank=True)
     emotion_detected = models.CharField(verbose_name='Эмоция', max_length=50, blank=True)
-    health_comment = models.TextField(blank=True, verbose_name='Комментарий пользователя')
 
     class Meta:
         verbose_name = 'Анализ лица'
-        verbose_name_plural = 'Анализы лица'
+        verbose_name_plural = 'Анализ лица'
 
     def __str__(self):
         return f"Анализ для {self.photo}"
 
-    def clean(self):
-        for field_name in ['skin_health_score', 'wrinkles_score', 'acne_score']:
-            value = getattr(self, field_name)
-            if value is not None and (value < 0 or value > 10):
-                raise ValidationError({field_name: 'Оценка должна быть от 0 до 10.'})
+    # def clean(self):
+    #     for field_name in ['skin_health_score', 'wrinkles_score']:
+    #         value = getattr(self, field_name)
+    #         if value is not None and (value < 0 or value > 10):
+    #             raise ValidationError({field_name: 'Оценка должна быть от 0 до 10.'})
 
 
 class UserSettings(DateStamp):
-    """Настройки пользователя"""
+    """Настройки"""
     user = models.ForeignKey(User, verbose_name='Пользователь', on_delete=models.CASCADE, related_name='settings')
     auto_photo = models.BooleanField(verbose_name='Автоматическое фото', default=True)
     notify_time = models.TimeField(verbose_name='Времени автоматического фото', default='10:00:00')
 
     class Meta:
-        verbose_name = 'Настройки пользователя'
-        verbose_name_plural = 'Настройки пользователей'
+        verbose_name = 'Настройка'
+        verbose_name_plural = 'Настройки'
         unique_together = 'user', 'auto_photo', 'notify_time'
 
     def __str__(self):

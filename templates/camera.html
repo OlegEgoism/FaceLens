@@ -1,9 +1,9 @@
 {% extends 'base.html' %}
 
-{% block title %}Сделать фото{% endblock %}
+{% block title %}Камера{% endblock %}
 
 {% block content %}
-<h1 class="welcome-title">Сделать фото с камеры</h1>
+<h1 class="welcome-title">Камера</h1>
 <hr style="margin-bottom: 20px;">
 
 <div style="display: flex; justify-content: center; align-items: center; margin: 20px 0;">
@@ -39,7 +39,7 @@
         canvas.getContext('2d').drawImage(video, 0, 0);
         const imageData = canvas.toDataURL('image/jpeg');
 
-        fetch("{% url 'save_photo' %}", {
+        fetch("{% url 'camera_save' %}", {
             method: 'POST',
             headers: {
                 'X-CSRFToken': '{{ csrf_token }}',

@@ -556,3 +556,27 @@ textarea[name="bio"] {
 
 
 
+/*.form-row {*/
+/*  display: flex;*/
+/*  align-items: center;*/
+/*  gap: 20px; !* расстояние между блоками, можно изменить *!*/
+/*  margin-bottom: 10px; !* нижний отступ, если нужно *!*/
+/*}*/
+
+/*.form-group {*/
+/*  display: flex;*/
+/*  align-items: center;*/
+/*  gap: 5px; !* расстояние между label и input *!*/
+/*}*/
+
+
+
+
+
+.form-row {
+  display: flex;
+  justify-content: center; /* центрируем элементы по горизонтали */
+  align-items: center;      /* выравниваем по вертикали, если нужно */
+  gap: 20px;                /* расстояние между элементами */
+}
+
