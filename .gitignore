@@ -1,5 +1,50 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg
+*.egg-info/
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+ENV/
+build/
+dist/
+
+# Django
+*.log
+*.pot
+*.pyc
+db.sqlite3
+media/
+staticfiles/
+
+# VS Code
+.vscode/
+
+# macOS
+.DS_Store
+
+# PyCharm
 .idea/
-.env
-.media/avatar/
-.media/photos/
-.face_lens/migrations/
+
+# Files and folders for face_lens
+media/avatar/avatar/default/*.png
+media/avatar/avatar/avatar/default/*.png
+media/avatar/avatar/avatar/avatar/default/*.png
+
+# Если нужно исключить только конкретные "no_photo" файлы:
+media/avatar/avatar/default/no_photo*
+media/avatar/avatar/avatar/default/no_photo*
+media/avatar/avatar/avatar/avatar/default/no_photo*
+
+# Или более общий вариант (все файлы "no_photo*.png" в media):
+media/**/no_photo*.png
+
+# Для миграций, которые не нужны (если нужно!)
+face_lens/migrations/*.pyc
+face_lens/migrations/__pycache__/
+
+# Опционально: исключить миграции (если миграции не нужны в репо, кроме __init__.py)
+# face_lens/migrations/[!__init__]*.py
