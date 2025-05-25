@@ -49,3 +49,7 @@ face_lens/migrations/__pycache__/
 
 # Опционально: исключить миграции (если миграции не нужны в репо, кроме __init__.py)
 # face_lens/migrations/[!__init__]*.py
+
+# Игнорировать миграции в app "face_lens"
+face_lens/migrations/*.py
+!face_lens/migrations/__init__.py
