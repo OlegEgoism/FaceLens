@@ -231,3 +231,56 @@ def camera_save(request):
                 messages.error(request, f"Ошибка анализа: {e}")
             return redirect('profile_photos')
     return redirect('camera_photo')
+
+
+
+
+import matplotlib.pyplot as plt
+import io
+import base64
+from datetime import date
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+
+
+@login_required
+def age_analysis_chart(request):
+    user = request.user
+    photos = user.photos.filter(estimated_age__isnull=False).order_by('created')
+
+    if not photos.exists() or not user.birthday:
+        return render(request, 'profile/age_analysis.html', {
+            'error': "Недостаточно данных для анализа."
+        })
+
+    # Реальный возраст пользователя
+    today = date.today()
+    user_age_years = today.year - user.birthday.year - ((today.month, today.day) < (user.birthday.month, user.birthday.day))
+
+    # Подготовим данные
+    photo_dates = [photo.created.strftime("%d.%m.%Y") for photo in photos]
+    photo_ages = [photo.estimated_age for photo in photos]
+
+    # Построим график
+    plt.figure(figsize=(10, 5))
+    plt.plot(photo_dates, photo_ages, marker='o', color='blue', label='Возраст по фото')
+    plt.axhline(y=user_age_years, color='green', linestyle='--', label=f'Реальный возраст: {user_age_years}')
+
+    plt.title("Сравнение возраста")
+    plt.xlabel("Дата фото")
+    plt.ylabel("Возраст (лет)")
+    plt.legend()
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+
+    # Сохраним график в base64
+    buffer = io.BytesIO()
+    plt.savefig(buffer, format='png')
+    buffer.seek(0)
+    image_png = buffer.getvalue()
+    buffer.close()
+    graphic = base64.b64encode(image_png).decode('utf-8')
+
+    return render(request, 'profile/age_analysis.html', {
+        'graphic': graphic
+    })

@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}Аналитика{% endblock %}
+
+{% block content %}
+<h1 class="welcome-title">Аналитика</h1>
+<hr style="margin-bottom: 20px;">
+
+{% if error %}
+    <p style="color: red;">{{ error }}</p>
+{% else %}
+    <div style="text-align: center;">
+        <img id="chartImage" src="data:image/png;base64,{{ graphic }}" alt="Анализ возраста"
+             style="max-width: 100%; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); cursor: zoom-in;">
+    </div>
+{% endif %}
+
+
+
+<!-- Модальное окно для увеличенного просмотра -->
+<div id="imageModal" class="modal" onclick="hideImageModal()">
+    <span class="close" onclick="hideImageModal(event)">&times;</span>
+    <img class="modal-fullscreen" id="modalImage" style="max-width: 90%; max-height: 90%;">
+</div>
+
+<!-- Скрипт -->
+<script>
+    const chartImage = document.getElementById('chartImage');
+    const modal = document.getElementById('imageModal');
+    const modalImg = document.getElementById('modalImage');
+
+    chartImage.addEventListener('click', function () {
+        modalImg.src = this.src;
+        modal.style.display = 'flex';
+    });
+
+    function hideImageModal(event) {
+        if (!event || event.target.classList.contains('modal') || event.target.classList.contains('close')) {
+            modal.style.display = 'none';
+        }
+    }
+</script>
+{% endblock %}
