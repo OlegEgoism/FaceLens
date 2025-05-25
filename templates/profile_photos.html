@@ -42,6 +42,43 @@
 <p>У вас пока нет загруженных фотографий.</p>
 {% endif %}
 
+<!-- Выбор количества элементов -->
+<form method="get" style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+    <label for="per_page"><strong>Показать на странице:</strong></label>
+    <select name="per_page" id="per_page" onchange="this.form.submit()">
+        {% for option in per_page_options %}
+            <option value="{{ option }}" {% if per_page == option %}selected{% endif %}>{{ option }}</option>
+        {% endfor %}
+    </select>
+    <noscript><button type="submit" class="button">Применить</button></noscript>
+</form>
+
+<!-- Пагинация -->
+<div class="pagination" style="margin-top: 20px;">
+    <ul style="display: flex; gap: 5px; list-style: none; padding: 0;">
+        {% if page_obj.has_previous %}
+        <li><a href="?page=1&per_page={{ per_page }}">« первая</a></li>
+        <li><a href="?page={{ page_obj.previous_page_number }}&per_page={{ per_page }}">‹</a></li>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+        {% if num == page_obj.number %}
+        <li><span style="padding: 5px 10px; background: #007bff; color: white; border-radius: 4px;">{{ num }}</span></li>
+        {% elif num >= page_obj.number|add:'-2' and num <= page_obj.number|add:'2' %}
+        <li><a href="?page={{ num }}&per_page={{ per_page }}" style="padding: 5px 10px; border: 1px solid #ccc; border-radius: 4px;">{{ num }}</a></li>
+        {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <li><a href="?page={{ page_obj.next_page_number }}&per_page={{ per_page }}">›</a></li>
+        <li><a href="?page={{ page_obj.paginator.num_pages }}&per_page={{ per_page }}">последняя »</a></li>
+        {% endif %}
+    </ul>
+</div>
+
+
+
+
 <!-- Модальное окно подтверждения удаления -->
 <div id="deleteModal" style="display:none;">
     <div class="modal-content">

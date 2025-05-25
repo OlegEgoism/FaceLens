@@ -7,53 +7,59 @@
 <hr style="margin-bottom: 20px;">
 
 <div style="display: flex; justify-content: center; align-items: center; margin: 20px 0;">
-    <video id="video" width="500" autoplay style="border-radius: 10px;"></video>
+  <video id="video" width="500" autoplay playsinline style="border-radius: 10px;"></video>
 </div>
 
 <canvas id="canvas" style="display:none;"></canvas>
 
 <div style="text-align: center; margin-top: 20px;">
-    <button id="captureBtn" class="button">📷 Сделать фото</button>
+  <button id="captureBtn" class="button">📷 Сделать фото</button>
 </div>
 
-<p id="status" style="margin-top: 10px;"></p>
+<p id="status" style="margin-top: 10px; color: green;"></p>
 
 <script>
-  const userId = "{{ request.user.id }}";
-  const socket = new WebSocket(`ws://${window.location.host}/ws/auto_photo/${userId}/`);
+  const video = document.getElementById('video');
+  const canvas = document.getElementById('canvas');
+  const captureBtn = document.getElementById('captureBtn');
+  const status = document.getElementById('status');
 
-  socket.onmessage = function(event) {
-    const data = JSON.parse(event.data);
-    if (data.type === 'take_photo') {
-      console.log("Получен сигнал — делаем фото!");
-      takePhoto();
-    }
-  };
+  // ✅ При загрузке страницы сразу включаем камеру
+  navigator.mediaDevices.getUserMedia({ video: true })
+    .then(stream => {
+      video.srcObject = stream;
+    })
+    .catch(err => {
+      console.error("Ошибка доступа к камере:", err);
+      status.innerText = "Ошибка доступа к камере!";
+    });
 
-  function takePhoto() {
-    const video = document.getElementById('video');
-    const canvas = document.createElement('canvas');
+  // ✅ При нажатии на кнопку — делаем фото
+  captureBtn.addEventListener('click', () => {
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     canvas.getContext('2d').drawImage(video, 0, 0);
-
     const imageData = canvas.toDataURL('image/jpeg');
+
+    // Отправляем фото на сервер
     fetch("{% url 'camera_save' %}", {
       method: 'POST',
       headers: {
         'X-CSRFToken': '{{ csrf_token }}',
-        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Type': 'application/x-www-form-urlencoded'
       },
-      body: new URLSearchParams({
-        'image_data': imageData
-      })
+      body: new URLSearchParams({ 'image_data': imageData })
     }).then(response => {
       if (response.redirected) {
-        window.location.href = response.url;
+        window.location.href = response.url; // Перейти в профиль после анализа
+      } else {
+        status.innerText = "Фото успешно отправлено!";
       }
+    }).catch(err => {
+      console.error("Ошибка отправки фото:", err);
+      status.innerText = "Ошибка при отправке фото!";
     });
-  }
+  });
 </script>
-
 
 {% endblock %}

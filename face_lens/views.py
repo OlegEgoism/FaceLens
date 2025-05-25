@@ -208,7 +208,6 @@ def camera_save(request):
             data = ContentFile(base64.b64decode(imgstr), name=f'photo_{request.user.id}_{timezone.now().strftime("%Y%m%d%H%M%S")}.{ext}')
             photo = Photo.objects.create(user=request.user, image=data)
 
-            # ✅ Сразу делаем анализ
             try:
                 original_path = photo.image.path
                 tmp_dir = tempfile.mkdtemp()

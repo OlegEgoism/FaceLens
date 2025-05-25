@@ -596,3 +596,37 @@ textarea[name="bio"] {
     font-weight: bold;
     cursor: pointer;
 }
+
+
+.per-page-form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: #f7f9fc;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    max-width: 250px;
+}
+
+.per-page-form label {
+    font-weight: 500;
+    color: #333;
+    margin: 0;
+}
+
+.per-page-form select {
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 0.9rem;
+    background: #fff;
+    color: #333;
+    cursor: pointer;
+    transition: border-color 0.3s ease;
+}
+
+.per-page-form select:focus {
+    border-color: #007bff;
+    outline: none;
+}
