@@ -17,7 +17,7 @@ from pathlib import Path
 import cv2
 import numpy as np
 
-PER_PAGE_OPTIONS = [1, 20, 50, 100]
+PER_PAGE_OPTIONS = [20, 50, 100]
 
 
 def home(request):
@@ -57,7 +57,7 @@ def profile(request):
         request.user.avatar = avatar
         request.user.save()
         return redirect('profile')
-    return render(request, 'profile.html')
+    return render(request, 'profile/profile.html')
 
 
 @login_required
@@ -74,7 +74,7 @@ def profile_edit(request):
                     messages.error(request, f"Ошибка в поле '{field}': {error}")
     else:
         form = UserUpdateForm(instance=request.user)
-    return render(request, 'profile_edit.html', {'form': form})
+    return render(request, 'profile/profile_edit.html', {'form': form})
 
 
 @login_required
@@ -106,7 +106,7 @@ def profile_settings(request):
             print("Форма невалидна", formset.errors)
     else:
         formset = SettingsFormSet(queryset=queryset)
-    return render(request, 'profile_settings.html', {'formset': formset})
+    return render(request, 'profile/profile_settings.html', {'formset': formset})
 
 
 @login_required
@@ -116,14 +116,14 @@ def profile_photos(request):
     try:
         per_page = int(per_page)
         if per_page not in PER_PAGE_OPTIONS:
-            per_page = 10
+            per_page = 20
     except ValueError:
-        per_page = 10
+        per_page = 20
     photos_list = Photo.objects.filter(user=request.user).order_by('-created')
     paginator = Paginator(photos_list, per_page)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    return render(request, 'profile_photos.html', {
+    return render(request, 'profile/profile_photos.html', {
         'page_obj': page_obj,
         'per_page': per_page,
         'per_page_options': PER_PAGE_OPTIONS,
@@ -229,7 +229,5 @@ def camera_save(request):
             except Exception as e:
                 print("Ошибка анализа:", e)
                 messages.error(request, f"Ошибка анализа: {e}")
-
             return redirect('profile_photos')
-
     return redirect('camera_photo')
