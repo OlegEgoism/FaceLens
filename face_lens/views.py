@@ -7,12 +7,17 @@ from django.forms import modelformset_factory
 from django.forms.utils import ErrorList
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db import IntegrityError
-from django.forms import modelformset_factory
 from face_lens.forms import UserRegistrationForm, UserUpdateForm, UserSettingsForm
 from face_lens.models import UserSettings, Photo
 from django.utils import timezone
 from django.core.files.base import ContentFile
-from django.contrib.auth.decorators import login_required
+from deepface import DeepFace
+import shutil, tempfile
+from pathlib import Path
+import cv2
+import numpy as np
+
+PER_PAGE_OPTIONS = [1, 20, 50, 100]
 
 
 def home(request):
@@ -114,13 +119,11 @@ def profile_photos(request):
             per_page = 10
     except ValueError:
         per_page = 10
-
-    photos_list = Photo.objects.filter(user=request.user).select_related('analysis').order_by('-created')
+    photos_list = Photo.objects.filter(user=request.user).order_by('-created')
     paginator = Paginator(photos_list, per_page)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-
-    return render(request, 'user_photos.html', {
+    return render(request, 'profile_photos.html', {
         'page_obj': page_obj,
         'per_page': per_page,
         'per_page_options': PER_PAGE_OPTIONS,
@@ -128,45 +131,14 @@ def profile_photos(request):
 
 
 @login_required
-def camera(request):
-    """Камера"""
-    return render(request, 'camera.html')
-
-
-@login_required
-def camera_save(request):
-    """Сделать фото"""
+def delete_photo(request, photo_id):
+    """Удалить фото"""
+    photo = get_object_or_404(Photo, id=photo_id, user=request.user)
     if request.method == 'POST':
-        image_data = request.POST.get('image_data')
-        if image_data:
-            format, imgstr = image_data.split(';base64,')
-            ext = format.split('/')[-1]
-            data = ContentFile(base64.b64decode(imgstr), name=f'photo_{request.user.id}_{timezone.now().strftime("%Y%m%d%H%M%S")}.{ext}')
-            Photo.objects.create(user=request.user, image=data)
-            return redirect('profile_photos')
-    return redirect('camera_photo')
+        photo.delete()
+    return redirect('profile_photos')
 
 
-
-
-
-
-
-
-
-from django.core.paginator import Paginator
-from django.contrib.auth.decorators import login_required
-
-PER_PAGE_OPTIONS = [1, 20, 50, 100]
-
-from deepface import DeepFace
-from .models import FaceAnalysis
-import shutil, tempfile
-from pathlib import Path
-import cv2
-import numpy as np
-
-# Словарь перевода
 EMOTION_TRANSLATIONS = {
     "happy": "Счастье",
     "sad": "Грусть",
@@ -179,20 +151,17 @@ EMOTION_TRANSLATIONS = {
 
 
 def estimate_skin_metrics(image_path, estimated_age, emotion):
+    """Оценка фото"""
     img = cv2.imread(image_path)
     img = cv2.resize(img, (224, 224))
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
     wrinkles_score = np.std(gray) / 10
     wrinkles_score = max(0, min(10, 10 - wrinkles_score))
-
     blur = cv2.GaussianBlur(gray, (9, 9), 0)
-
     base_score = 10 - (estimated_age or 30) / 10
     if emotion in ['sad', 'angry', 'disgust']:
         base_score -= 2
     skin_health_score = max(0, min(10, base_score))
-
     return round(skin_health_score, 2), round(wrinkles_score, 2)
 
 
@@ -200,37 +169,68 @@ def estimate_skin_metrics(image_path, estimated_age, emotion):
 def analyze_photo(request, photo_id):
     """Анализ фото"""
     photo = get_object_or_404(Photo, id=photo_id, user=request.user)
-
     try:
         original_path = photo.image.path
-
-        # Временная копия файла
         tmp_dir = tempfile.mkdtemp()
         tmp_path = Path(tmp_dir) / Path(original_path).name
         shutil.copyfile(original_path, tmp_path)
-
-        # Анализ лица
         result = DeepFace.analyze(img_path=str(tmp_path), actions=['age', 'emotion'], enforce_detection=False)[0]
         age = result['age']
         emotion = result['dominant_emotion']
         emotion_rus = EMOTION_TRANSLATIONS.get(emotion, emotion.capitalize())
-
-        # Эвристическая оценка кожи
         skin_health_score, wrinkles_score = estimate_skin_metrics(str(tmp_path), age, emotion)
-
-        # Сохранение анализа
-        FaceAnalysis.objects.update_or_create(
-            photo=photo,
-            defaults={
-                "estimated_age": age,
-                "emotion_detected": emotion_rus,
-                "mood": emotion_rus,
-                "skin_health_score": skin_health_score,
-                "wrinkles_score": wrinkles_score,
-            }
-        )
-        messages.success(request, "Анализ успешно выполнен.")
+        photo.estimated_age = age
+        photo.emotion_detected = emotion_rus
+        photo.mood = emotion_rus
+        photo.skin_health_score = skin_health_score
+        photo.wrinkles_score = wrinkles_score
+        photo.save()
+        # messages.success(request, "Анализ успешно выполнен.")
     except Exception as e:
         messages.error(request, f"Ошибка анализа: {e}")
-
     return redirect("profile_photos")
+
+
+@login_required
+def camera(request):
+    """Камера"""
+    return render(request, 'camera.html')
+
+
+@login_required
+def camera_save(request):
+    """Сделать фото и сразу выполнить анализ"""
+    if request.method == 'POST':
+        image_data = request.POST.get('image_data')
+        if image_data:
+            format, imgstr = image_data.split(';base64,')
+            ext = format.split('/')[-1]
+            data = ContentFile(base64.b64decode(imgstr), name=f'photo_{request.user.id}_{timezone.now().strftime("%Y%m%d%H%M%S")}.{ext}')
+            photo = Photo.objects.create(user=request.user, image=data)
+
+            # ✅ Сразу делаем анализ
+            try:
+                original_path = photo.image.path
+                tmp_dir = tempfile.mkdtemp()
+                tmp_path = Path(tmp_dir) / Path(original_path).name
+                shutil.copyfile(original_path, tmp_path)
+
+                result = DeepFace.analyze(img_path=str(tmp_path), actions=['age', 'emotion'], enforce_detection=False)[0]
+                age = result['age']
+                emotion = result['dominant_emotion']
+                emotion_rus = EMOTION_TRANSLATIONS.get(emotion, emotion.capitalize())
+                skin_health_score, wrinkles_score = estimate_skin_metrics(str(tmp_path), age, emotion)
+
+                photo.estimated_age = age
+                photo.emotion_detected = emotion_rus
+                photo.mood = emotion_rus
+                photo.skin_health_score = skin_health_score
+                photo.wrinkles_score = wrinkles_score
+                photo.save()
+            except Exception as e:
+                print("Ошибка анализа:", e)
+                messages.error(request, f"Ошибка анализа: {e}")
+
+            return redirect('profile_photos')
+
+    return redirect('camera_photo')

@@ -313,7 +313,6 @@ form .button:hover {
 }
 
 
-
 .bio-toggle {
     color: #007bff;
     font-weight: 600;
@@ -337,25 +336,25 @@ form .button:hover {
 }
 
 
-
-
-
-
 .modal {
     display: none;
     position: fixed;
     z-index: 1000;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background-color: rgba(0,0,0,0.9);
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
     text-align: center;
     padding-top: 60px;
 }
+
 .modal-content {
     max-width: 90%;
     max-height: 90%;
     border-radius: 8px;
 }
+
 .close {
     position: absolute;
     top: 20px;
@@ -367,19 +366,14 @@ form .button:hover {
 }
 
 
-
 .pagination ul li a {
     text-decoration: none;
     color: #007bff;
 }
+
 .pagination ul li a:hover {
     background-color: #e9ecef;
 }
-
-
-
-
-
 
 
 .button {
@@ -403,10 +397,6 @@ form .button:hover {
 .button:active {
     transform: scale(0.98);
 }
-
-
-
-
 
 
 .edit-icon {
@@ -447,7 +437,7 @@ form .button:hover {
     border-radius: 50%;
     padding: 4px;
     font-size: 12px;
-    box-shadow: 0 0 3px rgba(0,0,0,0.2);
+    box-shadow: 0 0 3px rgba(0, 0, 0, 0.2);
 }
 
 textarea[name="bio"] {
@@ -457,16 +447,6 @@ textarea[name="bio"] {
     padding: 10px;
     font-size: 14px;
 }
-
-
-
-
-
-
-
-
-
-
 
 
 .switch {
@@ -516,67 +496,103 @@ textarea[name="bio"] {
 }
 
 
-
-
-
-
-
 .modal {
-  display: none; /* скрыто по умолчанию */
-  position: fixed;
-  z-index: 1000;
-  padding-top: 100px;
-  left: 0; top: 0; width: 100%; height: 100%;
-  overflow: auto;
-  background-color: rgba(0,0,0,0.5);
+    display: none; /* скрыто по умолчанию */
+    position: fixed;
+    z-index: 1000;
+    padding-top: 100px;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.5);
 }
 
 .modal-content {
-  background-color: #f44336; /* красный фон для ошибки */
-  margin: auto;
-  padding: 20px;
-  border-radius: 5px;
-  width: 300px;
-  color: white;
-  font-weight: bold;
-  text-align: center;
+    background-color: #f44336; /* красный фон для ошибки */
+    margin: auto;
+    padding: 20px;
+    border-radius: 5px;
+    width: 300px;
+    color: white;
+    font-weight: bold;
+    text-align: center;
 }
 
 .close {
-  color: white;
-  float: right;
-  font-size: 28px;
-  font-weight: bold;
-  cursor: pointer;
+    color: white;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
 }
-
-
-
-
-
-
-
-/*.form-row {*/
-/*  display: flex;*/
-/*  align-items: center;*/
-/*  gap: 20px; !* расстояние между блоками, можно изменить *!*/
-/*  margin-bottom: 10px; !* нижний отступ, если нужно *!*/
-/*}*/
-
-/*.form-group {*/
-/*  display: flex;*/
-/*  align-items: center;*/
-/*  gap: 5px; !* расстояние между label и input *!*/
-/*}*/
-
-
-
 
 
 .form-row {
-  display: flex;
-  justify-content: center; /* центрируем элементы по горизонтали */
-  align-items: center;      /* выравниваем по вертикали, если нужно */
-  gap: 20px;                /* расстояние между элементами */
+    display: flex;
+    justify-content: center; /* центрируем элементы по горизонтали */
+    align-items: center; /* выравниваем по вертикали, если нужно */
+    gap: 20px; /* расстояние между элементами */
 }
 
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.95);
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+}
+
+.modal-fullscreen {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.close {
+    position: absolute;
+    top: 20px;
+    right: 30px;
+    font-size: 40px;
+    color: #fff;
+    cursor: pointer;
+    z-index: 1001;
+}
+
+
+/* Модальное окно удаления без затемнения */
+#deleteModal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    background: transparent;
+}
+
+#deleteModal .modal-content {
+    background: #fff;
+    color: #333;
+    width: 300px;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    text-align: center;
+}
+
+#deleteModal .close {
+    color: #888;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}

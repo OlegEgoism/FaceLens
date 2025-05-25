@@ -45,23 +45,9 @@ class User(AbstractUser, DateStamp):
 
 
 class Photo(DateStamp):
-    """Фотография"""
+    """Фотография с анализом лица"""
     user = models.ForeignKey(User, verbose_name='Пользователь', on_delete=models.CASCADE, related_name='photos')
     image = models.ImageField(verbose_name='Фотография', upload_to='photos/%Y/%m/%d/')
-
-    class Meta:
-        verbose_name = 'Фотография'
-        verbose_name_plural = 'Фотографии'
-        unique_together = 'user', 'created'
-        ordering = '-created',
-
-    def __str__(self):
-        return f"{self.user.username} — {self.created}"
-
-
-class FaceAnalysis(DateStamp):
-    """Анализ лица"""
-    photo = models.OneToOneField(Photo, verbose_name='Фотография', on_delete=models.CASCADE, related_name='analysis')
     estimated_age = models.PositiveSmallIntegerField(verbose_name='Оценка возраста', null=True, blank=True)
     skin_health_score = models.DecimalField(verbose_name='Оценка кожи', max_digits=4, decimal_places=2, null=True, blank=True)
     wrinkles_score = models.DecimalField(verbose_name='Оценка морщин', max_digits=4, decimal_places=2, null=True, blank=True)
@@ -69,17 +55,13 @@ class FaceAnalysis(DateStamp):
     emotion_detected = models.CharField(verbose_name='Эмоция', max_length=50, blank=True)
 
     class Meta:
-        verbose_name = 'Анализ лица'
-        verbose_name_plural = 'Анализ лица'
+        verbose_name = 'Фотография'
+        verbose_name_plural = 'Фотографии'
+        unique_together = 'user', 'created'
+        ordering = ('-created',)
 
     def __str__(self):
-        return f"Анализ для {self.photo}"
-
-    # def clean(self):
-    #     for field_name in ['skin_health_score', 'wrinkles_score']:
-    #         value = getattr(self, field_name)
-    #         if value is not None and (value < 0 or value > 10):
-    #             raise ValidationError({field_name: 'Оценка должна быть от 0 до 10.'})
+        return f"{self.user.username} — {self.created}"
 
 
 class UserSettings(DateStamp):
@@ -94,4 +76,4 @@ class UserSettings(DateStamp):
         unique_together = 'user', 'auto_photo', 'notify_time'
 
     def __str__(self):
-        return f"Настройки {self.user.username}"
+        return f"Автоматическое фото"

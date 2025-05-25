@@ -19,46 +19,41 @@
 <p id="status" style="margin-top: 10px;"></p>
 
 <script>
+  const userId = "{{ request.user.id }}";
+  const socket = new WebSocket(`ws://${window.location.host}/ws/auto_photo/${userId}/`);
+
+  socket.onmessage = function(event) {
+    const data = JSON.parse(event.data);
+    if (data.type === 'take_photo') {
+      console.log("Получен сигнал — делаем фото!");
+      takePhoto();
+    }
+  };
+
+  function takePhoto() {
     const video = document.getElementById('video');
-    const canvas = document.getElementById('canvas');
-    const captureBtn = document.getElementById('captureBtn');
-    const status = document.getElementById('status');
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0);
 
-    navigator.mediaDevices.getUserMedia({video: true})
-        .then(stream => {
-            video.srcObject = stream;
-        })
-        .catch(error => {
-            console.error("Ошибка доступа к камере", error);
-            status.innerText = "Не удалось получить доступ к камере.";
-        });
-
-    captureBtn.addEventListener('click', function () {
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        canvas.getContext('2d').drawImage(video, 0, 0);
-        const imageData = canvas.toDataURL('image/jpeg');
-
-        fetch("{% url 'camera_save' %}", {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': '{{ csrf_token }}',
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: new URLSearchParams({
-                'image_data': imageData
-            })
-        }).then(response => {
-            if (response.redirected) {
-                window.location.href = response.url;
-            } else {
-                status.innerHTML = 'Фото сохранено! <a href="{% url "profile_photos" %}" style="margin-left: 10px; color: #007bff;">Перейти к фото</a>';
-            }
-        }).catch(err => {
-            console.error("Ошибка отправки:", err);
-            status.innerText = "Ошибка при сохранении фото.";
-        });
+    const imageData = canvas.toDataURL('image/jpeg');
+    fetch("{% url 'camera_save' %}", {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': '{{ csrf_token }}',
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        'image_data': imageData
+      })
+    }).then(response => {
+      if (response.redirected) {
+        window.location.href = response.url;
+      }
     });
+  }
 </script>
+
 
 {% endblock %}

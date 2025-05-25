@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.utils.safestring import mark_safe
-from face_lens.models import User, Photo, UserSettings, FaceAnalysis
+from face_lens.models import User, Photo, UserSettings
 
 
 class UserSettingsInline(admin.TabularInline):
@@ -19,7 +19,7 @@ class PhotoInline(admin.TabularInline):
     extra = 0
     max_num = 10
     can_delete = False
-    readonly_fields = 'preview_image', 'image', 'created', 'updated'
+    readonly_fields = 'preview_image', 'image', 'estimated_age', 'skin_health_score', 'wrinkles_score', 'mood', 'emotion_detected', 'created', 'updated'
 
     def preview_image(self, obj):
         if obj.image:
@@ -45,7 +45,7 @@ class UserAdmin(admin.ModelAdmin):
     list_editable = 'is_active',
     search_fields = 'username', 'email', 'phone',
     search_help_text = 'Поиск по логину, адресу электронной почты и номеру телефона'
-    readonly_fields = 'age_display', 'last_login', 'created', 'updated', 'preview_avatar',
+    readonly_fields = 'age_display', 'phone_country', 'last_login', 'created', 'updated', 'preview_avatar',
     date_hierarchy = 'date_joined'
     inlines = UserSettingsInline, PhotoInline
     list_per_page = 20
@@ -70,39 +70,3 @@ class UserAdmin(admin.ModelAdmin):
         return obj.get_age_display() or '—'
 
     age_display.short_description = 'Возраст'
-
-
-# @admin.register(Photo)
-# class PhotoAdmin(admin.ModelAdmin):
-#     """Фотография пользователя"""
-#     list_display = 'user', 'preview_image', 'created', 'updated'
-#     # readonly_fields = 'user', 'preview_image', 'image', 'created', 'updated',
-#     date_hierarchy = 'created'
-#     list_filter = 'user', 'created',
-#     list_per_page = 20
-#
-#     def preview_image(self, obj):
-#         if obj.image:
-#             return mark_safe(f'<img src="{obj.image.url}" width="60" height="60" style="border-radius: 0%;" />')
-#         else:
-#             return 'Нет фотографии'
-#
-#     preview_image.short_description = 'Фотография'
-
-
-@admin.register(FaceAnalysis)
-class FaceAnalysisAdmin(admin.ModelAdmin):
-    list_display = 'get_username', 'preview_image', 'estimated_age', 'skin_health_score', 'wrinkles_score', 'mood', 'emotion_detected', 'created', 'updated',
-
-    def get_username(self, obj):
-        return obj.photo.user.username
-
-    get_username.short_description = 'Пользователь'
-    get_username.admin_order_field = 'photo__user__username'
-
-    def preview_image(self, obj):
-        if obj.photo.image:
-            return mark_safe(f'<img src="{obj.photo.image.url}" width="60" height="60" style="border-radius: 0%;" />')
-        return 'Нет фотографии'
-
-    preview_image.short_description = 'Фотография'
