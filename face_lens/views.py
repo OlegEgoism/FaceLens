@@ -238,10 +238,9 @@ def camera_save(request):
 import matplotlib.pyplot as plt
 import io
 import base64
-from datetime import date
 from django.shortcuts import render
+from datetime import date
 from django.contrib.auth.decorators import login_required
-
 
 @login_required
 def age_analysis_chart(request):
@@ -257,30 +256,58 @@ def age_analysis_chart(request):
     today = date.today()
     user_age_years = today.year - user.birthday.year - ((today.month, today.day) < (user.birthday.month, user.birthday.day))
 
-    # Подготовим данные
     photo_dates = [photo.created.strftime("%d.%m.%Y") for photo in photos]
     photo_ages = [photo.estimated_age for photo in photos]
 
-    # Построим график
-    plt.figure(figsize=(10, 5))
+    # --- 1. График возраста ---
+    plt.figure(figsize=(6, 4))
     plt.plot(photo_dates, photo_ages, marker='o', color='blue', label='Возраст по фото')
     plt.axhline(y=user_age_years, color='green', linestyle='--', label=f'Реальный возраст: {user_age_years}')
-
-    plt.title("Сравнение возраста")
-    plt.xlabel("Дата фото")
+    # plt.title("Сравнение возраста")
+    # plt.xlabel("Дата фото")
     plt.ylabel("Возраст (лет)")
     plt.legend()
-    plt.xticks(rotation=45)
+    plt.xticks(rotation=0)
     plt.tight_layout()
+    buffer1 = io.BytesIO()
+    plt.savefig(buffer1, format='png')
+    buffer1.seek(0)
+    graphic1 = base64.b64encode(buffer1.getvalue()).decode('utf-8')
+    plt.close()
 
-    # Сохраним график в base64
-    buffer = io.BytesIO()
-    plt.savefig(buffer, format='png')
-    buffer.seek(0)
-    image_png = buffer.getvalue()
-    buffer.close()
-    graphic = base64.b64encode(image_png).decode('utf-8')
+    # --- 2. График настроения ---
+    moods = [photo.mood or '—' for photo in photos]
+    plt.figure(figsize=(6, 4))
+    plt.plot(photo_dates, moods, marker='o', color='purple')
+    # plt.title("Настроение по датам")
+    # plt.xlabel("Дата фото")
+    plt.ylabel("Настроение")
+    plt.xticks(rotation=0)
+    plt.tight_layout()
+    buffer2 = io.BytesIO()
+    plt.savefig(buffer2, format='png')
+    buffer2.seek(0)
+    graphic2 = base64.b64encode(buffer2.getvalue()).decode('utf-8')
+    plt.close()
+
+    # --- 3. График эмоций ---
+    emotions = [photo.emotion_detected or '—' for photo in photos]
+    plt.figure(figsize=(6, 4))
+    plt.plot(photo_dates, emotions, marker='o', color='orange')
+    # plt.title("Эмоции по датам")
+    plt.xlabel("Дата")
+    # plt.ylabel("Эмоции")
+    plt.xticks(rotation=0)
+    plt.tight_layout()
+    buffer3 = io.BytesIO()
+    plt.savefig(buffer3, format='png')
+    buffer3.seek(0)
+    graphic3 = base64.b64encode(buffer3.getvalue()).decode('utf-8')
+    plt.close()
 
     return render(request, 'profile/age_analysis.html', {
-        'graphic': graphic
+        'graphic1': graphic1,
+        'graphic2': graphic2,
+        'graphic3': graphic3
     })
+

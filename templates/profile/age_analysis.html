@@ -9,15 +9,23 @@
 {% if error %}
     <p style="color: red;">{{ error }}</p>
 {% else %}
-    <div style="text-align: center;">
-        <img id="chartImage" src="data:image/png;base64,{{ graphic }}" alt="Анализ возраста"
-             style="max-width: 100%; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); cursor: zoom-in;">
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 30px;">
+        <div style="text-align: center;">
+            <h3>Возраст</h3>
+            <img class="chart-image" src="data:image/png;base64,{{ graphic1 }}" alt="Анализ возраста">
+        </div>
+        <div style="text-align: center;">
+            <h3>Настроение</h3>
+            <img class="chart-image" src="data:image/png;base64,{{ graphic2 }}" alt="Анализ настроения">
+        </div>
+        <div style="text-align: center;">
+            <h3>Эмоции</h3>
+            <img class="chart-image" src="data:image/png;base64,{{ graphic3 }}" alt="Анализ эмоций">
+        </div>
     </div>
 {% endif %}
 
-
-
-<!-- Модальное окно для увеличенного просмотра -->
+<!-- Модальное окно -->
 <div id="imageModal" class="modal" onclick="hideImageModal()">
     <span class="close" onclick="hideImageModal(event)">&times;</span>
     <img class="modal-fullscreen" id="modalImage" style="max-width: 90%; max-height: 90%;">
@@ -25,18 +33,19 @@
 
 <!-- Скрипт -->
 <script>
-    const chartImage = document.getElementById('chartImage');
-    const modal = document.getElementById('imageModal');
-    const modalImg = document.getElementById('modalImage');
-
-    chartImage.addEventListener('click', function () {
-        modalImg.src = this.src;
-        modal.style.display = 'flex';
+    document.querySelectorAll('.chart-image').forEach(img => {
+        img.addEventListener('click', function() {
+            const modal = document.getElementById("imageModal");
+            const modalImg = document.getElementById("modalImage");
+            modalImg.src = this.src;
+            modal.style.display = "flex";
+        });
     });
 
     function hideImageModal(event) {
+        const modal = document.getElementById("imageModal");
         if (!event || event.target.classList.contains('modal') || event.target.classList.contains('close')) {
-            modal.style.display = 'none';
+            modal.style.display = "none";
         }
     }
 </script>
