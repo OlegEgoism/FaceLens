@@ -16,6 +16,9 @@ import shutil, tempfile
 from pathlib import Path
 import cv2
 import numpy as np
+import matplotlib.pyplot as plt
+import io
+from datetime import date
 
 PER_PAGE_OPTIONS = [20, 50, 100]
 EMOTION_TRANSLATIONS = {
@@ -133,6 +136,7 @@ def profile_photos(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     user = request.user
+
     def get_real_age(user):
         if not user.birthday:
             return None
@@ -241,23 +245,50 @@ def camera_save(request):
             return redirect('profile_photos')
     return redirect('camera_photo')
 
-
+from datetime import datetime, date
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+from face_lens.models import Photo
 import matplotlib.pyplot as plt
 import io
 import base64
-from django.shortcuts import render
-from datetime import date
-from django.contrib.auth.decorators import login_required
-
 
 @login_required
-def age_analysis_chart(request):
+def analysis(request):
     user = request.user
-    photos = Photo.objects.filter(user=user, estimated_age__isnull=False).order_by('created')
+
+    date_from_str = request.GET.get('date_from')
+    date_to_str = request.GET.get('date_to')
+
+    photos = Photo.objects.filter(user=user, estimated_age__isnull=False)
+
+    # Фильтрация по дате начала
+    if date_from_str:
+        try:
+            date_from = datetime.strptime(date_from_str, "%Y-%m-%d")
+            photos = photos.filter(created__date__gte=date_from)
+        except ValueError:
+            date_from = None
+    else:
+        date_from = None
+
+    # Фильтрация по дате конца
+    if date_to_str:
+        try:
+            date_to = datetime.strptime(date_to_str, "%Y-%m-%d")
+            photos = photos.filter(created__date__lte=date_to)
+        except ValueError:
+            date_to = None
+    else:
+        date_to = None
+
+    photos = photos.order_by('created')
 
     if not photos.exists() or not user.birthday:
-        return render(request, 'profile/age_analysis.html', {
-            'error': "Необходимо указать свой возраст в профиле."
+        return render(request, 'profile/analysis.html', {
+            'error': "Необходимо указать свой возраст в профиле.",
+            'date_from': date_from_str,
+            'date_to': date_to_str,
         })
 
     # Реальный возраст пользователя
@@ -267,7 +298,7 @@ def age_analysis_chart(request):
     photo_dates = [photo.created.strftime("%d.%m.%Y") for photo in photos]
     photo_ages = [photo.estimated_age for photo in photos]
 
-    # ---- СРЕДНИЙ ВОЗРАСТ ----
+    # Средний возраст
     if photo_ages:
         avg_age = round(sum(photo_ages) / len(photo_ages), 1)
     else:
@@ -279,7 +310,7 @@ def age_analysis_chart(request):
     plt.axhline(y=user_age_years, color='green', linestyle='--', label=f'Реальный возраст: {user_age_years}')
     plt.ylabel("Возраст (лет)")
     plt.legend()
-    plt.xticks(rotation=0)
+    plt.xticks(rotation=45)
     plt.tight_layout()
     buffer1 = io.BytesIO()
     plt.savefig(buffer1, format='png')
@@ -291,7 +322,7 @@ def age_analysis_chart(request):
     emotions = [photo.emotion_detected or '—' for photo in photos]
     plt.figure(figsize=(6, 4))
     plt.plot(photo_dates, emotions, marker='o', color='orange')
-    plt.xticks(rotation=0)
+    plt.xticks(rotation=45)
     plt.tight_layout()
     buffer3 = io.BytesIO()
     plt.savefig(buffer3, format='png')
@@ -299,10 +330,12 @@ def age_analysis_chart(request):
     graphic3 = base64.b64encode(buffer3.getvalue()).decode('utf-8')
     plt.close()
 
-    return render(request, 'profile/age_analysis.html', {
+    return render(request, 'profile/analysis.html', {
         'graphic1': graphic1,
         'graphic3': graphic3,
         'avg_age': avg_age,
-        'user_age': user_age_years
+        'user_age': user_age_years,
+        'error': None,
+        'date_from': date_from_str,
+        'date_to': date_to_str,
     })
-

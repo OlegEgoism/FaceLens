@@ -3,7 +3,7 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path
 from django.contrib.auth import views as auth_views
-from face_lens.views import home, logout_view, register, profile, profile_edit, profile_settings, camera, profile_photos, camera_save, analyze_photo, delete_photo, age_analysis_chart
+from face_lens.views import home, logout_view, register, profile, profile_edit, profile_settings, camera, profile_photos, camera_save, analyze_photo, delete_photo, analysis
 
 urlpatterns = [
     path('admin/', admin.site.urls),  # Админка
@@ -19,7 +19,7 @@ urlpatterns = [
     path('profile/photos/', profile_photos, name='profile_photos'),  # Фото альбом
     path('profile/photo/<int:photo_id>/analyze/', analyze_photo, name='analyze_photo'),  # Анализ фото
     path('profile/photo/<int:photo_id>/delete/', delete_photo, name='delete_photo'),  # Удалить фото
-    path('profile/age_analysis/', age_analysis_chart, name='age_analysis_chart'),
+    path('profile/analysis/', analysis, name='analysis'),
 
 
     path('camera', camera, name='camera'),  # Камера

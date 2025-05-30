@@ -6,17 +6,37 @@
 <h1 class="welcome-title">Аналитика</h1>
 <hr style="margin-bottom: 20px;">
 
+<form method="get" class="date-filter-form">
+  <div class="date-range-container">
+    <div class="filter-group">
+      <label for="date_from">Дата с:</label>
+      <input type="date" id="date_from" name="date_from" value="{{ date_from }}">
+    </div>
+
+    <div class="filter-group">
+      <label for="date_to">Дата по:</label>
+      <input type="date" id="date_to" name="date_to" value="{{ date_to }}">
+    </div>
+  </div>
+
+  <div class="buttons-container">
+    <button type="submit" class="btn-apply">Применить</button>
+    <button type="button" class="btn-reset" onclick="resetFilter()">Сбросить</button>
+  </div>
+</form>
+
+
+
+
 {% if error %}
 <p style="color: red;">{{ error }}</p>
 {% else %}
-    {% if avg_age %}
-    <p>Средний возраст по фото: {{ avg_age }}</p>
-    {% endif %}
-    <p>Реальный возраст: {{ user_age }}</p>
+{% if avg_age %}
+<p>Средний возраст по фото: {{ avg_age }}</p>
+{% endif %}
+<p>Реальный возраст: {{ user_age }}</p>
+
 <div style="display: flex; flex-direction: column; align-items: center; gap: 30px;">
-
-
-
     <div style="text-align: center;">
         <h3>Возраст</h3>
         <img class="chart-image" src="data:image/png;base64,{{ graphic1 }}" alt="Анализ возраста">
@@ -34,7 +54,6 @@
     <img class="modal-fullscreen" id="modalImage" style="max-width: 90%; max-height: 90%;">
 </div>
 
-<!-- Скрипт -->
 <script>
     document.querySelectorAll('.chart-image').forEach(img => {
         img.addEventListener('click', function () {
@@ -51,5 +70,13 @@
             modal.style.display = "none";
         }
     }
+
+    function resetFilter() {
+        document.getElementById('date_from').value = '';
+        document.getElementById('date_to').value = '';
+        // Отправляем форму с пустыми полями
+        document.querySelector('.date-filter-form').submit();
+    }
 </script>
+
 {% endblock %}

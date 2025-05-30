@@ -32,7 +32,7 @@
         <ul class="nav-links">
             {% if user.is_authenticated %}
             <li><a href="{% url 'camera' %}" class="nav-button">Камера</a></li>
-            <li><a href="{% url 'age_analysis_chart' %}" class="nav-button">Аналитика</a></li>
+            <li><a href="{% url 'analysis' %}" class="nav-button">Аналитика</a></li>
             <li><a href="{% url 'profile_photos' %}" class="nav-button">Фото альбом</a></li>
             <li><a href="{% url 'profile_settings' %}" class="nav-button">Настройки</a></li>
             <li><a href="{% url 'profile' %}" class="nav-button">Профиль</a></li>
