@@ -720,7 +720,7 @@ textarea[name="bio"] {
 }
 
 .btn-reset:hover {
-    background-color: #ed7f7f;
+    background-color: #cfcfcf;
 }
 
 
@@ -786,7 +786,7 @@ textarea[name="bio"] {
 .date-range-container {
     display: flex;
     justify-content: space-between;
-    gap: 10px;
+    gap: 100px;
     flex-wrap: wrap;
     max-width: 480px;
     margin-bottom: 20px;
@@ -803,13 +803,4 @@ textarea[name="bio"] {
     border-color: #4a90e2;
     outline: none;
     box-shadow: 0 0 5px rgba(74, 144, 226, 0.5);
-}
-
-
-
-#age_slider, #skin_slider, #wrinkles_slider {
-  margin-top: 10px;
-  margin-bottom: 5px;
-  height: 8px;
-  min-width: 250px; /* чтобы виден был слайдер */
 }

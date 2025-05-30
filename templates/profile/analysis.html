@@ -17,23 +17,14 @@
       <label for="date_to">Дата по:</label>
       <input type="date" id="date_to" name="date_to" value="{{ date_to }}">
     </div>
-
-    <div class="filter-group">
-      <label for="emotion">Эмоция:</label>
-      <select id="emotion" name="emotion">
-        <option value="all" {% if emotion_filter == "all" or not emotion_filter %}selected{% endif %}>Все</option>
-        {% for emotion in emotion_options %}
-        <option value="{{ emotion }}" {% if emotion_filter == emotion %}selected{% endif %}>{{ emotion }}</option>
-        {% endfor %}
-      </select>
-    </div>
   </div>
 
   <div class="buttons-container">
-    <button type="submit" class="button btn-apply">Применить</button>
-    <button type="button" class="button btn-reset" onclick="resetFilter()">Сбросить</button>
+    <button type="submit" class="btn-apply">Применить</button>
+    <button type="button" class="btn-reset" onclick="resetFilter()">Сбросить</button>
   </div>
 </form>
+
 
 
 
@@ -44,7 +35,6 @@
 <p>Средний возраст по фото: {{ avg_age }}</p>
 {% endif %}
 <p>Реальный возраст: {{ user_age }}</p>
-<hr style="margin-bottom: 20px;">
 
 <div style="display: flex; flex-direction: column; align-items: center; gap: 30px;">
     <div style="text-align: center;">
@@ -84,14 +74,7 @@
     function resetFilter() {
         document.getElementById('date_from').value = '';
         document.getElementById('date_to').value = '';
-        document.getElementById('emotion').value = 'all';
-        document.querySelector('.date-filter-form').submit();
-    }
-
-    function resetFilter() {
-        document.getElementById('date_from').value = '';
-        document.getElementById('date_to').value = '';
-        document.getElementById('emotion').value = 'all';
+        // Отправляем форму с пустыми полями
         document.querySelector('.date-filter-form').submit();
     }
 </script>

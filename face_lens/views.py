@@ -1,6 +1,4 @@
 import base64
-from itertools import count
-
 from django.contrib import messages
 from django.contrib.auth import logout, login
 from django.contrib.auth.decorators import login_required
@@ -9,8 +7,6 @@ from django.forms import modelformset_factory
 from django.forms.utils import ErrorList
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db import IntegrityError
-from tensorflow.python.ops.collective_ops import all_gather
-
 from face_lens.forms import UserRegistrationForm, UserUpdateForm, UserSettingsForm
 from face_lens.models import UserSettings, Photo
 from django.utils import timezone
@@ -20,11 +16,9 @@ import shutil, tempfile
 from pathlib import Path
 import cv2
 import numpy as np
-from datetime import datetime, date
-from django.shortcuts import render
-from face_lens.models import Photo
 import matplotlib.pyplot as plt
 import io
+from datetime import date
 
 PER_PAGE_OPTIONS = [20, 50, 100]
 EMOTION_TRANSLATIONS = {
@@ -131,6 +125,7 @@ def profile_settings(request):
 
 @login_required
 def profile_photos(request):
+    """Фото альбом"""
     per_page = request.GET.get('per_page', '10')
     try:
         per_page = int(per_page)
@@ -235,6 +230,7 @@ def estimate_skin_metrics(image_path, estimated_age, emotion):
 
 @login_required
 def analyze_photo(request, photo_id):
+    """Анализ фото"""
     photo = get_object_or_404(Photo, id=photo_id, user=request.user)
     try:
         original_path = photo.image.path
@@ -244,18 +240,18 @@ def analyze_photo(request, photo_id):
 
         result = DeepFace.analyze(img_path=str(tmp_path), actions=['age', 'emotion'], enforce_detection=False)[0]
         age = result['age']
-        emotion = result['dominant_emotion']  # ключ из DeepFace, например 'happy'
+        emotion = result['dominant_emotion']
+        emotion_rus = EMOTION_TRANSLATIONS.get(emotion, emotion.capitalize())
         skin_health_score, wrinkles_score = estimate_skin_metrics(str(tmp_path), age, emotion)
-
         photo.estimated_age = age
-        photo.emotion_detected = emotion  # сохраняем ключ (англ.)
+        photo.emotion_detected = emotion_rus
         photo.skin_health_score = skin_health_score
         photo.wrinkles_score = wrinkles_score
         photo.save()
+        # messages.success(request, "Анализ успешно выполнен.")
     except Exception as e:
         messages.error(request, f"Ошибка анализа: {e}")
     return redirect("profile_photos")
-
 
 
 @login_required
@@ -298,6 +294,13 @@ def camera_save(request):
             return redirect('profile_photos')
     return redirect('camera_photo')
 
+from datetime import datetime, date
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+from face_lens.models import Photo
+import matplotlib.pyplot as plt
+import io
+import base64
 
 @login_required
 def analysis(request):
@@ -337,7 +340,7 @@ def analysis(request):
 
     if not photos.exists() or not user.birthday:
         return render(request, 'profile/analysis.html', {
-            'error': "Нет информации или ваш возраст не указан!",
+            'error': "Необходимо указать свой возраст в профиле.",
             'date_from': date_from_str,
             'date_to': date_to_str,
             'emotion_filter': emotion_filter,
