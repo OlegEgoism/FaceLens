@@ -7,22 +7,25 @@
 <hr style="margin-bottom: 20px;">
 
 {% if error %}
-    <p style="color: red;">{{ error }}</p>
+<p style="color: red;">{{ error }}</p>
 {% else %}
-    <div style="display: flex; flex-direction: column; align-items: center; gap: 30px;">
-        <div style="text-align: center;">
-            <h3>Возраст</h3>
-            <img class="chart-image" src="data:image/png;base64,{{ graphic1 }}" alt="Анализ возраста">
-        </div>
-        <div style="text-align: center;">
-            <h3>Настроение</h3>
-            <img class="chart-image" src="data:image/png;base64,{{ graphic2 }}" alt="Анализ настроения">
-        </div>
-        <div style="text-align: center;">
-            <h3>Эмоции</h3>
-            <img class="chart-image" src="data:image/png;base64,{{ graphic3 }}" alt="Анализ эмоций">
-        </div>
+    {% if avg_age %}
+    <p>Средний возраст по фото: {{ avg_age }}</p>
+    {% endif %}
+    <p>Реальный возраст: {{ user_age }}</p>
+<div style="display: flex; flex-direction: column; align-items: center; gap: 30px;">
+
+
+
+    <div style="text-align: center;">
+        <h3>Возраст</h3>
+        <img class="chart-image" src="data:image/png;base64,{{ graphic1 }}" alt="Анализ возраста">
     </div>
+    <div style="text-align: center;">
+        <h3>Эмоции</h3>
+        <img class="chart-image" src="data:image/png;base64,{{ graphic3 }}" alt="Анализ эмоций">
+    </div>
+</div>
 {% endif %}
 
 <!-- Модальное окно -->
@@ -34,7 +37,7 @@
 <!-- Скрипт -->
 <script>
     document.querySelectorAll('.chart-image').forEach(img => {
-        img.addEventListener('click', function() {
+        img.addEventListener('click', function () {
             const modal = document.getElementById("imageModal");
             const modalImg = document.getElementById("modalImage");
             modalImg.src = this.src;

@@ -18,10 +18,23 @@
         <!-- Данные -->
         <div style="flex: 1;">
             <p><strong>Дата:</strong> {{ photo.created|date:"d.m.Y H:i" }}</p>
-            <p><strong>Возраст:</strong> {{ photo.estimated_age|default:"—" }}</p>
+            <p><strong>Возраст:</strong>
+                {% if photo.estimated_age %}
+                {{ photo.estimated_age }}
+                {% if real_age %}
+                {% if photo.estimated_age > real_age %}
+                <span style="color: red;">▲</span>
+                {% elif photo.estimated_age < real_age %}
+                <span style="color: green;">▼</span>
+                {% endif %}
+                {% endif %}
+                {% else %}
+                —
+                {% endif %}
+            </p>
+
             <p><strong>Кожа:</strong> {{ photo.skin_health_score|default:"—" }}</p>
             <p><strong>Морщины:</strong> {{ photo.wrinkles_score|default:"—" }}</p>
-            <p><strong>Настроение:</strong> {{ photo.mood|default:"—" }}</p>
             <p><strong>Эмоция:</strong> {{ photo.emotion_detected|default:"—" }}</p>
 
             <div style="margin-top: 10px; display: flex; gap: 10px;">
@@ -47,10 +60,12 @@
     <label for="per_page"><strong>Показать на странице:</strong></label>
     <select name="per_page" id="per_page" onchange="this.form.submit()">
         {% for option in per_page_options %}
-            <option value="{{ option }}" {% if per_page == option %}selected{% endif %}>{{ option }}</option>
+        <option value="{{ option }}" {% if per_page == option %}selected{% endif %}>{{ option }}</option>
         {% endfor %}
     </select>
-    <noscript><button type="submit" class="button">Применить</button></noscript>
+    <noscript>
+        <button type="submit" class="button">Применить</button>
+    </noscript>
 </form>
 
 <!-- Пагинация -->
@@ -75,8 +90,6 @@
         {% endif %}
     </ul>
 </div>
-
-
 
 
 <!-- Модальное окно подтверждения удаления -->
@@ -112,7 +125,7 @@
         deleteFormToSubmit = null;
     }
 
-    document.getElementById("confirmDelete").addEventListener("click", function() {
+    document.getElementById("confirmDelete").addEventListener("click", function () {
         if (deleteFormToSubmit) {
             deleteFormToSubmit.submit();
         }

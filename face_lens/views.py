@@ -18,6 +18,15 @@ import cv2
 import numpy as np
 
 PER_PAGE_OPTIONS = [20, 50, 100]
+EMOTION_TRANSLATIONS = {
+    "happy": "Счастье",
+    "sad": "Грусть",
+    "angry": "Злость",
+    "surprise": "Удивление",
+    "fear": "Страх",
+    "disgust": "Отвращение",
+    "neutral": "Нейтрально"
+}
 
 
 def home(request):
@@ -123,10 +132,23 @@ def profile_photos(request):
     paginator = Paginator(photos_list, per_page)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
+    user = request.user
+    def get_real_age(user):
+        if not user.birthday:
+            return None
+        today = date.today()
+        years = today.year - user.birthday.year
+        if (today.month, today.day) < (user.birthday.month, user.birthday.day):
+            years -= 1
+        return years
+
+    real_age = get_real_age(user)
+
     return render(request, 'profile/profile_photos.html', {
         'page_obj': page_obj,
         'per_page': per_page,
         'per_page_options': PER_PAGE_OPTIONS,
+        'real_age': real_age,
     })
 
 
@@ -137,17 +159,6 @@ def delete_photo(request, photo_id):
     if request.method == 'POST':
         photo.delete()
     return redirect('profile_photos')
-
-
-EMOTION_TRANSLATIONS = {
-    "happy": "Счастье",
-    "sad": "Грусть",
-    "angry": "Злость",
-    "surprise": "Удивление",
-    "fear": "Страх",
-    "disgust": "Отвращение",
-    "neutral": "Нейтрально"
-}
 
 
 def estimate_skin_metrics(image_path, estimated_age, emotion):
@@ -181,7 +192,6 @@ def analyze_photo(request, photo_id):
         skin_health_score, wrinkles_score = estimate_skin_metrics(str(tmp_path), age, emotion)
         photo.estimated_age = age
         photo.emotion_detected = emotion_rus
-        photo.mood = emotion_rus
         photo.skin_health_score = skin_health_score
         photo.wrinkles_score = wrinkles_score
         photo.save()
@@ -222,7 +232,6 @@ def camera_save(request):
 
                 photo.estimated_age = age
                 photo.emotion_detected = emotion_rus
-                photo.mood = emotion_rus
                 photo.skin_health_score = skin_health_score
                 photo.wrinkles_score = wrinkles_score
                 photo.save()
@@ -233,8 +242,6 @@ def camera_save(request):
     return redirect('camera_photo')
 
 
-
-
 import matplotlib.pyplot as plt
 import io
 import base64
@@ -242,14 +249,15 @@ from django.shortcuts import render
 from datetime import date
 from django.contrib.auth.decorators import login_required
 
+
 @login_required
 def age_analysis_chart(request):
     user = request.user
-    photos = user.photos.filter(estimated_age__isnull=False).order_by('created')
+    photos = Photo.objects.filter(user=user, estimated_age__isnull=False).order_by('created')
 
     if not photos.exists() or not user.birthday:
         return render(request, 'profile/age_analysis.html', {
-            'error': "Недостаточно данных для анализа."
+            'error': "Необходимо указать свой возраст в профиле."
         })
 
     # Реальный возраст пользователя
@@ -259,12 +267,16 @@ def age_analysis_chart(request):
     photo_dates = [photo.created.strftime("%d.%m.%Y") for photo in photos]
     photo_ages = [photo.estimated_age for photo in photos]
 
-    # --- 1. График возраста ---
+    # ---- СРЕДНИЙ ВОЗРАСТ ----
+    if photo_ages:
+        avg_age = round(sum(photo_ages) / len(photo_ages), 1)
+    else:
+        avg_age = None
+
+    # График возраста
     plt.figure(figsize=(6, 4))
     plt.plot(photo_dates, photo_ages, marker='o', color='blue', label='Возраст по фото')
     plt.axhline(y=user_age_years, color='green', linestyle='--', label=f'Реальный возраст: {user_age_years}')
-    # plt.title("Сравнение возраста")
-    # plt.xlabel("Дата фото")
     plt.ylabel("Возраст (лет)")
     plt.legend()
     plt.xticks(rotation=0)
@@ -275,28 +287,10 @@ def age_analysis_chart(request):
     graphic1 = base64.b64encode(buffer1.getvalue()).decode('utf-8')
     plt.close()
 
-    # --- 2. График настроения ---
-    moods = [photo.mood or '—' for photo in photos]
-    plt.figure(figsize=(6, 4))
-    plt.plot(photo_dates, moods, marker='o', color='purple')
-    # plt.title("Настроение по датам")
-    # plt.xlabel("Дата фото")
-    plt.ylabel("Настроение")
-    plt.xticks(rotation=0)
-    plt.tight_layout()
-    buffer2 = io.BytesIO()
-    plt.savefig(buffer2, format='png')
-    buffer2.seek(0)
-    graphic2 = base64.b64encode(buffer2.getvalue()).decode('utf-8')
-    plt.close()
-
-    # --- 3. График эмоций ---
+    # График эмоций
     emotions = [photo.emotion_detected or '—' for photo in photos]
     plt.figure(figsize=(6, 4))
     plt.plot(photo_dates, emotions, marker='o', color='orange')
-    # plt.title("Эмоции по датам")
-    plt.xlabel("Дата")
-    # plt.ylabel("Эмоции")
     plt.xticks(rotation=0)
     plt.tight_layout()
     buffer3 = io.BytesIO()
@@ -307,7 +301,8 @@ def age_analysis_chart(request):
 
     return render(request, 'profile/age_analysis.html', {
         'graphic1': graphic1,
-        'graphic2': graphic2,
-        'graphic3': graphic3
+        'graphic3': graphic3,
+        'avg_age': avg_age,
+        'user_age': user_age_years
     })
 

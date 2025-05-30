@@ -19,7 +19,7 @@ class PhotoInline(admin.TabularInline):
     extra = 0
     max_num = 10
     can_delete = False
-    readonly_fields = 'preview_image', 'image', 'estimated_age', 'skin_health_score', 'wrinkles_score', 'mood', 'emotion_detected', 'created', 'updated'
+    readonly_fields = 'preview_image', 'image', 'estimated_age', 'skin_health_score', 'wrinkles_score', 'emotion_detected', 'created', 'updated'
 
     def preview_image(self, obj):
         if obj.image:

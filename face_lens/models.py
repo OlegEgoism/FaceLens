@@ -51,7 +51,6 @@ class Photo(DateStamp):
     estimated_age = models.PositiveSmallIntegerField(verbose_name='Оценка возраста', null=True, blank=True)
     skin_health_score = models.DecimalField(verbose_name='Оценка кожи', max_digits=4, decimal_places=2, null=True, blank=True)
     wrinkles_score = models.DecimalField(verbose_name='Оценка морщин', max_digits=4, decimal_places=2, null=True, blank=True)
-    mood = models.CharField(verbose_name='Настроение', max_length=50, blank=True)
     emotion_detected = models.CharField(verbose_name='Эмоция', max_length=50, blank=True)
 
     class Meta:
