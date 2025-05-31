@@ -30,8 +30,8 @@
   </div>
 
   <div class="buttons-container">
-    <button type="submit" class="btn-apply">Применить</button>
-    <button type="button" class="btn-reset" onclick="resetFilter()">Сбросить</button>
+    <button type="submit" class="button btn-apply">Применить</button>
+    <button type="button" class="button btn-reset" onclick="resetFilter()">Сбросить</button>
   </div>
 </form>
 
@@ -44,6 +44,7 @@
 <p>Средний возраст по фото: {{ avg_age }}</p>
 {% endif %}
 <p>Реальный возраст: {{ user_age }}</p>
+<hr style="margin-bottom: 20px;">
 
 <div style="display: flex; flex-direction: column; align-items: center; gap: 30px;">
     <div style="text-align: center;">
@@ -78,13 +79,6 @@
         if (!event || event.target.classList.contains('modal') || event.target.classList.contains('close')) {
             modal.style.display = "none";
         }
-    }
-
-    function resetFilter() {
-        document.getElementById('date_from').value = '';
-        document.getElementById('date_to').value = '';
-        // Отправляем форму с пустыми полями
-        document.querySelector('.date-filter-form').submit();
     }
 
     function resetFilter() {

@@ -6,6 +6,37 @@
 <h1 class="welcome-title">Фото альбом</h1>
 <hr style="margin-bottom: 20px;">
 
+<form method="get" class="date-filter-form">
+    <div class="date-range-container">
+        <div class="filter-group">
+            <label for="date_from">Дата с:</label>
+            <input type="date" id="date_from" name="date_from" value="{{ filters.date_from }}">
+        </div>
+
+        <div class="filter-group">
+            <label for="date_to">Дата по:</label>
+            <input type="date" id="date_to" name="date_to" value="{{ filters.date_to }}">
+        </div>
+
+        <div class="filter-group">
+            <label for="emotion">Эмоция:</label>
+                <select id="emotion" name="emotion" style="min-width: 140px;">
+                  <option value="all" {% if filters.emotion == "all" %}selected{% endif %}>Все</option>
+                  {% for key, label in emotions_for_filter %}
+                  <option value="{{ key }}" {% if filters.emotion == key %}selected{% endif %}>{{ label }}</option>
+                  {% endfor %}
+                </select>
+        </div>
+    </div>
+
+    <div class="buttons-container">
+        <button type="submit" class="button btn-apply">Применить</button>
+        <button type="button" class="button btn-reset" onclick="resetFilters()">Сбросить</button>
+    </div>
+</form>
+<hr style="margin-bottom: 20px;">
+
+
 {% if page_obj %}
 <div style="display: flex; flex-wrap: wrap; gap: 20px;">
     {% for photo in page_obj %}
@@ -63,34 +94,35 @@
         <option value="{{ option }}" {% if per_page == option %}selected{% endif %}>{{ option }}</option>
         {% endfor %}
     </select>
-    <noscript>
-        <button type="submit" class="button">Применить</button>
-    </noscript>
+
+    <!-- Сохраняем текущие фильтры при смене per_page -->
+    <input type="hidden" name="date_from" value="{{ filters.date_from }}">
+    <input type="hidden" name="date_to" value="{{ filters.date_to }}">
+    <input type="hidden" name="emotion" value="{{ filters.emotion }}">
 </form>
 
 <!-- Пагинация -->
 <div class="pagination" style="margin-top: 20px;">
     <ul style="display: flex; gap: 5px; list-style: none; padding: 0;">
         {% if page_obj.has_previous %}
-        <li><a href="?page=1&per_page={{ per_page }}">« первая</a></li>
-        <li><a href="?page={{ page_obj.previous_page_number }}&per_page={{ per_page }}">‹</a></li>
+        <li><a href="?page=1&per_page={{ per_page }}&date_from={{ filters.date_from }}&date_to={{ filters.date_to }}&emotion={{ filters.emotion }}">« первая</a></li>
+        <li><a href="?page={{ page_obj.previous_page_number }}&per_page={{ per_page }}&date_from={{ filters.date_from }}&date_to={{ filters.date_to }}&emotion={{ filters.emotion }}">‹</a></li>
         {% endif %}
 
         {% for num in page_obj.paginator.page_range %}
         {% if num == page_obj.number %}
         <li><span style="padding: 5px 10px; background: #007bff; color: white; border-radius: 4px;">{{ num }}</span></li>
         {% elif num >= page_obj.number|add:'-2' and num <= page_obj.number|add:'2' %}
-        <li><a href="?page={{ num }}&per_page={{ per_page }}" style="padding: 5px 10px; border: 1px solid #ccc; border-radius: 4px;">{{ num }}</a></li>
+        <li><a href="?page={{ num }}&per_page={{ per_page }}&date_from={{ filters.date_from }}&date_to={{ filters.date_to }}&emotion={{ filters.emotion }}" style="padding: 5px 10px; border: 1px solid #ccc; border-radius: 4px;">{{ num }}</a></li>
         {% endif %}
         {% endfor %}
 
         {% if page_obj.has_next %}
-        <li><a href="?page={{ page_obj.next_page_number }}&per_page={{ per_page }}">›</a></li>
-        <li><a href="?page={{ page_obj.paginator.num_pages }}&per_page={{ per_page }}">последняя »</a></li>
+        <li><a href="?page={{ page_obj.next_page_number }}&per_page={{ per_page }}&date_from={{ filters.date_from }}&date_to={{ filters.date_to }}&emotion={{ filters.emotion }}">›</a></li>
+        <li><a href="?page={{ page_obj.paginator.num_pages }}&per_page={{ per_page }}&date_from={{ filters.date_from }}&date_to={{ filters.date_to }}&emotion={{ filters.emotion }}">последняя »</a></li>
         {% endif %}
     </ul>
 </div>
-
 
 <!-- Модальное окно подтверждения удаления -->
 <div id="deleteModal" style="display:none;">
@@ -104,15 +136,28 @@
     </div>
 </div>
 
-
 <!-- Модальное окно для показа фото -->
 <div id="imageModal" class="modal" onclick="hideImageModal()">
     <span class="close" onclick="hideImageModal(event)">&times;</span>
     <img class="modal-fullscreen" id="modalImage">
 </div>
 
-<!-- Скрипт -->
 <script>
+    // Сброс фильтров
+    function resetFilters() {
+        const form = document.querySelector('form[method="get"]');
+        form.querySelectorAll('input, select').forEach(el => {
+            if (el.tagName.toLowerCase() === 'select') {
+                el.value = 'all' || '';
+            } else if (el.type === 'date' || el.type === 'text' || el.type === 'number') {
+                el.value = '';
+            }
+        });
+        form.submit();
+    }
+
+    // Модальные окна
+
     let deleteFormToSubmit = null;
 
     function confirmDelete(form) {

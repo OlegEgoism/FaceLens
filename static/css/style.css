@@ -804,3 +804,12 @@ textarea[name="bio"] {
     outline: none;
     box-shadow: 0 0 5px rgba(74, 144, 226, 0.5);
 }
+
+
+
+#age_slider, #skin_slider, #wrinkles_slider {
+  margin-top: 10px;
+  margin-bottom: 5px;
+  height: 8px;
+  min-width: 250px; /* чтобы виден был слайдер */
+}

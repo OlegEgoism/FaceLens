@@ -1,4 +1,6 @@
 import base64
+from itertools import count
+
 from django.contrib import messages
 from django.contrib.auth import logout, login
 from django.contrib.auth.decorators import login_required
@@ -7,6 +9,8 @@ from django.forms import modelformset_factory
 from django.forms.utils import ErrorList
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db import IntegrityError
+from tensorflow.python.ops.collective_ops import all_gather
+
 from face_lens.forms import UserRegistrationForm, UserUpdateForm, UserSettingsForm
 from face_lens.models import UserSettings, Photo
 from django.utils import timezone
@@ -66,12 +70,14 @@ def logout_view(request):
 @login_required
 def profile(request):
     """Профиль пользователя"""
+    user = request.user
+    all_photos = Photo.objects.filter(user=user).count()
     if request.method == 'POST' and 'avatar' in request.FILES:
         avatar = request.FILES['avatar']
         request.user.avatar = avatar
         request.user.save()
         return redirect('profile')
-    return render(request, 'profile/profile.html')
+    return render(request, 'profile/profile.html', {'all_photos': all_photos})
 
 
 @login_required
@@ -125,7 +131,6 @@ def profile_settings(request):
 
 @login_required
 def profile_photos(request):
-    """Фото альбом"""
     per_page = request.GET.get('per_page', '10')
     try:
         per_page = int(per_page)
@@ -133,10 +138,36 @@ def profile_photos(request):
             per_page = 20
     except ValueError:
         per_page = 20
-    photos_list = Photo.objects.filter(user=request.user).order_by('-created')
+
+    photos_list = Photo.objects.filter(user=request.user)
+
+    # Фильтры из запроса
+    date_from_str = request.GET.get('date_from')
+    date_to_str = request.GET.get('date_to')
+    emotion = request.GET.get('emotion')
+
+    if date_from_str:
+        try:
+            date_from = datetime.strptime(date_from_str, "%Y-%m-%d")
+            photos_list = photos_list.filter(created__date__gte=date_from)
+        except ValueError:
+            pass
+    if date_to_str:
+        try:
+            date_to = datetime.strptime(date_to_str, "%Y-%m-%d")
+            photos_list = photos_list.filter(created__date__lte=date_to)
+        except ValueError:
+            pass
+
+    if emotion and emotion != "all":
+        photos_list = photos_list.filter(emotion_detected__iexact=emotion)
+
+    photos_list = photos_list.order_by('-created')
+
     paginator = Paginator(photos_list, per_page)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
+
     user = request.user
 
     def get_real_age(user):
@@ -150,11 +181,31 @@ def profile_photos(request):
 
     real_age = get_real_age(user)
 
+    # Получаем уникальные, нормализованные значения эмоций
+    emotions_raw = Photo.objects.filter(user=user).values_list('emotion_detected', flat=True)
+    emotions_clean = set(e.strip().lower() for e in emotions_raw if e)
+
+    # Формируем список кортежей (ключ, перевод)
+    emotions_for_filter = []
+    for key in sorted(emotions_clean):
+        # Ищем в словаре с ключом в нижнем регистре
+        translation = EMOTION_TRANSLATIONS.get(key)
+        if not translation:
+            # Если нет перевода, берем ключ с заглавной буквы
+            translation = key.capitalize()
+        emotions_for_filter.append((key, translation))
+
     return render(request, 'profile/profile_photos.html', {
         'page_obj': page_obj,
         'per_page': per_page,
         'per_page_options': PER_PAGE_OPTIONS,
         'real_age': real_age,
+        'filters': {
+            'date_from': date_from_str or '',
+            'date_to': date_to_str or '',
+            'emotion': emotion or 'all',
+        },
+        'emotions_for_filter': emotions_for_filter,
     })
 
 
@@ -184,27 +235,27 @@ def estimate_skin_metrics(image_path, estimated_age, emotion):
 
 @login_required
 def analyze_photo(request, photo_id):
-    """Анализ фото"""
     photo = get_object_or_404(Photo, id=photo_id, user=request.user)
     try:
         original_path = photo.image.path
         tmp_dir = tempfile.mkdtemp()
         tmp_path = Path(tmp_dir) / Path(original_path).name
         shutil.copyfile(original_path, tmp_path)
+
         result = DeepFace.analyze(img_path=str(tmp_path), actions=['age', 'emotion'], enforce_detection=False)[0]
         age = result['age']
-        emotion = result['dominant_emotion']
-        emotion_rus = EMOTION_TRANSLATIONS.get(emotion, emotion.capitalize())
+        emotion = result['dominant_emotion']  # ключ из DeepFace, например 'happy'
         skin_health_score, wrinkles_score = estimate_skin_metrics(str(tmp_path), age, emotion)
+
         photo.estimated_age = age
-        photo.emotion_detected = emotion_rus
+        photo.emotion_detected = emotion  # сохраняем ключ (англ.)
         photo.skin_health_score = skin_health_score
         photo.wrinkles_score = wrinkles_score
         photo.save()
-        # messages.success(request, "Анализ успешно выполнен.")
     except Exception as e:
         messages.error(request, f"Ошибка анализа: {e}")
     return redirect("profile_photos")
+
 
 
 @login_required

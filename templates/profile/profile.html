@@ -43,6 +43,13 @@
         {% if user.birthday %}
         {{ user.get_age_display }}
         {% else %}
+        Нет фотографий
+        {% endif %}
+    </p>
+    <p><strong>Количество фотографий:</strong>
+        {% if all_photos %}
+        {{ all_photos }} шт.
+        {% else %}
         Нет информации
         {% endif %}
     </p>
