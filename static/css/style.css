@@ -720,7 +720,7 @@ textarea[name="bio"] {
 }
 
 .btn-reset:hover {
-    background-color: #cfcfcf;
+    background-color: #ed7f7f;
 }
 
 
@@ -786,7 +786,7 @@ textarea[name="bio"] {
 .date-range-container {
     display: flex;
     justify-content: space-between;
-    gap: 100px;
+    gap: 10px;
     flex-wrap: wrap;
     max-width: 480px;
     margin-bottom: 20px;

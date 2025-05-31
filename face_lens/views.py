@@ -16,9 +16,11 @@ import shutil, tempfile
 from pathlib import Path
 import cv2
 import numpy as np
+from datetime import datetime, date
+from django.shortcuts import render
+from face_lens.models import Photo
 import matplotlib.pyplot as plt
 import io
-from datetime import date
 
 PER_PAGE_OPTIONS = [20, 50, 100]
 EMOTION_TRANSLATIONS = {
@@ -245,13 +247,6 @@ def camera_save(request):
             return redirect('profile_photos')
     return redirect('camera_photo')
 
-from datetime import datetime, date
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render
-from face_lens.models import Photo
-import matplotlib.pyplot as plt
-import io
-import base64
 
 @login_required
 def analysis(request):
@@ -259,6 +254,7 @@ def analysis(request):
 
     date_from_str = request.GET.get('date_from')
     date_to_str = request.GET.get('date_to')
+    emotion_filter = request.GET.get('emotion')  # добавляем фильтр
 
     photos = Photo.objects.filter(user=user, estimated_age__isnull=False)
 
@@ -282,27 +278,28 @@ def analysis(request):
     else:
         date_to = None
 
+    # Фильтрация по эмоциям
+    if emotion_filter and emotion_filter != "all":
+        photos = photos.filter(emotion_detected=emotion_filter)
+
     photos = photos.order_by('created')
 
     if not photos.exists() or not user.birthday:
         return render(request, 'profile/analysis.html', {
-            'error': "Необходимо указать свой возраст в профиле.",
+            'error': "Нет информации или ваш возраст не указан!",
             'date_from': date_from_str,
             'date_to': date_to_str,
+            'emotion_filter': emotion_filter,
+            'emotion_options': EMOTION_TRANSLATIONS.values(),
         })
 
-    # Реальный возраст пользователя
     today = date.today()
     user_age_years = today.year - user.birthday.year - ((today.month, today.day) < (user.birthday.month, user.birthday.day))
 
     photo_dates = [photo.created.strftime("%d.%m.%Y") for photo in photos]
     photo_ages = [photo.estimated_age for photo in photos]
 
-    # Средний возраст
-    if photo_ages:
-        avg_age = round(sum(photo_ages) / len(photo_ages), 1)
-    else:
-        avg_age = None
+    avg_age = round(sum(photo_ages) / len(photo_ages), 1) if photo_ages else None
 
     # График возраста
     plt.figure(figsize=(6, 4))
@@ -327,15 +324,17 @@ def analysis(request):
     buffer3 = io.BytesIO()
     plt.savefig(buffer3, format='png')
     buffer3.seek(0)
-    graphic3 = base64.b64encode(buffer3.getvalue()).decode('utf-8')
+    graphic2 = base64.b64encode(buffer3.getvalue()).decode('utf-8')
     plt.close()
 
     return render(request, 'profile/analysis.html', {
         'graphic1': graphic1,
-        'graphic3': graphic3,
+        'graphic2': graphic2,
         'avg_age': avg_age,
         'user_age': user_age_years,
         'error': None,
         'date_from': date_from_str,
         'date_to': date_to_str,
+        'emotion_filter': emotion_filter,
+        'emotion_options': EMOTION_TRANSLATIONS.values(),  # передаем список эмоций
     })
