@@ -3,86 +3,90 @@
 {% block title %}Аналитика{% endblock %}
 
 {% block content %}
-<h1 class="welcome-title">Аналитика</h1>
-<hr style="margin-bottom: 20px;">
+    <h1 class="welcome-title">Аналитика</h1>
+    <hr style="margin-bottom: 20px;">
 
-<form method="get" class="date-filter-form">
-    <div class="date-range-container">
+    <form method="get" class="date-filter-form">
+        <div class="date-range-container">
 
-        <div class="filter-group">
-            <label for="date_from">Дата с:</label>
-            <input type="date" id="date_from" name="date_from" value="{{ date_from }}">
-        </div>
+            <div class="filter-group">
+                <label for="date_from">Дата с:</label>
+                <input type="date" id="date_from" name="date_from" value="{{ date_from }}">
+            </div>
 
-        <div class="filter-group">
-            <label for="date_to">Дата по:</label>
-            <input type="date" id="date_to" name="date_to" value="{{ date_to }}">
-        </div>
+            <div class="filter-group">
+                <label for="date_to">Дата по:</label>
+                <input type="date" id="date_to" name="date_to" value="{{ date_to }}">
+            </div>
 
-        <div class="filter-group">
-            <label for="emotion">Эмоция:</label>
+            <div class="filter-group">
+                <label for="emotion">Эмоция:</label>
                 <select id="emotion" name="emotion">
-                  <option value="all" {% if emotion_filter == "all" or not emotion_filter %}selected{% endif %}>Все</option>
-                  {% for label in emotion_options %}
-                  <option value="{{ label }}" {% if emotion_filter == label %}selected{% endif %}>{{ label }}</option>
-                  {% endfor %}
+                    <option value="all" {% if emotion_filter == "all" or not emotion_filter %}selected{% endif %}>Все</option>
+                    {% for label in emotion_options %}
+                        <option value="{{ label }}" {% if emotion_filter == label %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
                 </select>
+            </div>
         </div>
+
+        <div class="buttons-container" style="margin-top: 10px;">
+            <button type="submit" class="button btn-apply">Применить</button>
+            <button type="button" class="button btn-reset" onclick="resetFilter()">Сбросить</button>
+        </div>
+    </form>
+
+    <hr style="margin-bottom: 20px;">
+
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 30px;">
+        {% if graphic1 %}
+            <div style="text-align: center;">
+                <h3>Возраст</h3>
+                <div style="text-align: center; margin-bottom: 10px;">
+                    <span style="color: blue; font-weight: bold;">Средний возраст по фото: {{ avg_age }}</span> &nbsp;&nbsp;
+                    <span style="color: green; font-weight: bold;">Реальный возраст: {{ user_age }}</span>
+                </div>
+                <img class="chart-image" src="data:image/png;base64,{{ graphic1 }}" alt="Анализ возраста">
+            </div>
+        {% endif %}
+
+        {% if graphic2 %}
+            <div style="text-align: center;">
+                <h3>Эмоции</h3>
+                <img class="chart-image" src="data:image/png;base64,{{ graphic2 }}" alt="Анализ эмоций">
+            </div>
+        {% endif %}
     </div>
 
-    <div class="buttons-container" style="margin-top: 10px;">
-        <button type="submit" class="button btn-apply">Применить</button>
-        <button type="button" class="button btn-reset" onclick="resetFilter()">Сбросить</button>
+    <!-- Модальное окно -->
+    <div id="imageModal" class="modal" onclick="hideImageModal()">
+        <span class="close" onclick="hideImageModal(event)">&times;</span>
+        <img class="modal-fullscreen" id="modalImage" style="max-width: 90%; max-height: 90%;">
     </div>
-</form>
 
-<hr style="margin-bottom: 20px;">
-
-
-<div style="display: flex; flex-direction: column; align-items: center; gap: 30px;">
-    <div style="text-align: center;">
-        <h3>Возраст</h3>
-        <div style="text-align: center; margin-bottom: 10px;">
-    <span style="color: blue; font-weight: bold;">Средний возраст по фото: {{ avg_age }}</span> &nbsp;&nbsp;
-    <span style="color: green; font-weight: bold;">Реальный возраст: {{ user_age }}</span>
-</div>
-        <img class="chart-image" src="data:image/png;base64,{{ graphic1 }}" alt="Анализ возраста">
-    </div>
-    <div style="text-align: center;">
-        <h3>Эмоции</h3>
-        <img class="chart-image" src="data:image/png;base64,{{ graphic2 }}" alt="Анализ эмоций">
-    </div>
-</div>
-
-<!-- Модальное окно -->
-<div id="imageModal" class="modal" onclick="hideImageModal()">
-    <span class="close" onclick="hideImageModal(event)">&times;</span>
-    <img class="modal-fullscreen" id="modalImage" style="max-width: 90%; max-height: 90%;">
-</div>
-
-<script>
-    document.querySelectorAll('.chart-image').forEach(img => {
-        img.addEventListener('click', function () {
-            const modal = document.getElementById("imageModal");
-            const modalImg = document.getElementById("modalImage");
-            modalImg.src = this.src;
-            modal.style.display = "flex";
+    <script>
+        document.querySelectorAll('.chart-image').forEach(img => {
+            img.addEventListener('click', function () {
+                const modal = document.getElementById("imageModal");
+                const modalImg = document.getElementById("modalImage");
+                modalImg.src = this.src;
+                modal.style.display = "flex";
+            });
         });
-    });
 
-    function hideImageModal(event) {
-        const modal = document.getElementById("imageModal");
-        if (!event || event.target.classList.contains('modal') || event.target.classList.contains('close')) {
-            modal.style.display = "none";
+        function hideImageModal(event) {
+            const modal = document.getElementById("imageModal");
+            if (!event || event.target.classList.contains('modal') || event.target.classList.contains('close')) {
+                modal.style.display = "none";
+            }
         }
-    }
 
-    function resetFilter() {
-        document.getElementById('date_from').value = '';
-        document.getElementById('date_to').value = '';
-        document.getElementById('emotion').value = 'all';
-        document.querySelector('.date-filter-form').submit();
-    }
-</script>
+        function resetFilter() {
+            document.getElementById('date_from').value = '';
+            document.getElementById('date_to').value = '';
+            document.getElementById('emotion').value = 'all';
+            document.querySelector('.date-filter-form').submit();
+        }
+    </script>
 
 {% endblock %}
