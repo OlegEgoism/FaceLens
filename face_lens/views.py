@@ -7,6 +7,8 @@ from django.forms import modelformset_factory
 from django.forms.utils import ErrorList
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db import IntegrityError
+from matplotlib.ticker import MaxNLocator
+
 from face_lens.forms import UserRegistrationForm, UserUpdateForm, UserSettingsForm
 from face_lens.models import UserSettings, Photo
 from django.utils import timezone
@@ -16,9 +18,9 @@ import shutil, tempfile
 from pathlib import Path
 import cv2
 import numpy as np
+from datetime import datetime, date
 import matplotlib.pyplot as plt
 import io
-from datetime import date
 
 PER_PAGE_OPTIONS = [20, 50, 100]
 EMOTION_TRANSLATIONS = {
@@ -34,7 +36,8 @@ EMOTION_TRANSLATIONS = {
 
 def home(request):
     """Главная страница"""
-    return render(request, 'home.html')
+    user = request.user
+    return render(request, 'home.html', {'user': user})
 
 
 def register(request):
@@ -294,13 +297,7 @@ def camera_save(request):
             return redirect('profile_photos')
     return redirect('camera_photo')
 
-from datetime import datetime, date
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render
-from face_lens.models import Photo
-import matplotlib.pyplot as plt
-import io
-import base64
+
 
 @login_required
 def analysis(request):
@@ -308,11 +305,10 @@ def analysis(request):
 
     date_from_str = request.GET.get('date_from')
     date_to_str = request.GET.get('date_to')
-    emotion_filter = request.GET.get('emotion')  # добавляем фильтр
+    emotion_filter = request.GET.get('emotion')
 
     photos = Photo.objects.filter(user=user, estimated_age__isnull=False)
 
-    # Фильтрация по дате начала
     if date_from_str:
         try:
             date_from = datetime.strptime(date_from_str, "%Y-%m-%d")
@@ -322,7 +318,6 @@ def analysis(request):
     else:
         date_from = None
 
-    # Фильтрация по дате конца
     if date_to_str:
         try:
             date_to = datetime.strptime(date_to_str, "%Y-%m-%d")
@@ -332,35 +327,31 @@ def analysis(request):
     else:
         date_to = None
 
-    # Фильтрация по эмоциям
+    # Фильтрация по эмоции — ПО ПЕРЕВОДУ!
     if emotion_filter and emotion_filter != "all":
         photos = photos.filter(emotion_detected=emotion_filter)
-
     photos = photos.order_by('created')
 
     if not photos.exists() or not user.birthday:
         return render(request, 'profile/analysis.html', {
             'error': "Необходимо указать свой возраст в профиле.",
-            'date_from': date_from_str,
-            'date_to': date_to_str,
-            'emotion_filter': emotion_filter,
-            'emotion_options': EMOTION_TRANSLATIONS.values(),
+            'date_from': date_from_str or '',
+            'date_to': date_to_str or '',
+            'emotion_filter': emotion_filter or 'all',
+            'emotion_options': list(EMOTION_TRANSLATIONS.values()),
         })
-
     today = date.today()
     user_age_years = today.year - user.birthday.year - ((today.month, today.day) < (user.birthday.month, user.birthday.day))
-
     photo_dates = [photo.created.strftime("%d.%m.%Y") for photo in photos]
     photo_ages = [photo.estimated_age for photo in photos]
-
     avg_age = round(sum(photo_ages) / len(photo_ages), 1) if photo_ages else None
 
-    # График возраста
     plt.figure(figsize=(6, 4))
-    plt.plot(photo_dates, photo_ages, marker='o', color='blue', label='Возраст по фото')
-    plt.axhline(y=user_age_years, color='green', linestyle='--', label=f'Реальный возраст: {user_age_years}')
+    plt.plot(photo_dates, photo_ages, marker='o', color='blue')
+    plt.axhline(y=user_age_years, color='green', linestyle='--')
     plt.ylabel("Возраст (лет)")
     plt.legend()
+    plt.gca().yaxis.set_major_locator(MaxNLocator(integer=True))
     plt.xticks(rotation=45)
     plt.tight_layout()
     buffer1 = io.BytesIO()
@@ -387,8 +378,8 @@ def analysis(request):
         'avg_age': avg_age,
         'user_age': user_age_years,
         'error': None,
-        'date_from': date_from_str,
-        'date_to': date_to_str,
-        'emotion_filter': emotion_filter,
-        'emotion_options': EMOTION_TRANSLATIONS.values(),  # передаем список эмоций
+        'date_from': date_from_str or '',
+        'date_to': date_to_str or '',
+        'emotion_filter': emotion_filter or 'all',
+        'emotion_options': list(EMOTION_TRANSLATIONS.values()),
     })

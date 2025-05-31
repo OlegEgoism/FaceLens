@@ -8,6 +8,7 @@
 
 <form method="get" class="date-filter-form">
     <div class="date-range-container">
+
         <div class="filter-group">
             <label for="date_from">Дата с:</label>
             <input type="date" id="date_from" name="date_from" value="{{ filters.date_from }}">
@@ -20,7 +21,7 @@
 
         <div class="filter-group">
             <label for="emotion">Эмоция:</label>
-                <select id="emotion" name="emotion" style="min-width: 140px;">
+                <select id="emotion" name="emotion">
                   <option value="all" {% if filters.emotion == "all" %}selected{% endif %}>Все</option>
                   {% for key, label in emotions_for_filter %}
                   <option value="{{ key }}" {% if filters.emotion == key %}selected{% endif %}>{{ label }}</option>
@@ -34,6 +35,7 @@
         <button type="button" class="button btn-reset" onclick="resetFilters()">Сбросить</button>
     </div>
 </form>
+
 <hr style="margin-bottom: 20px;">
 
 
