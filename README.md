@@ -15,6 +15,10 @@
 
 ---
 
+## Команды
+
+- Файл для выполнения команд [setup.sh](setup.sh)
+
 
 
 ![Blank.png](Blank.png)
