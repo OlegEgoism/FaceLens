@@ -18,29 +18,29 @@
 
     <div id="formset-container">
         {% for form in formset %}
-       <div class="form-settings-item">
-    {{ form.id }}
+        <div class="form-settings-item">
+            {{ form.id }}
 
-    <div class="form-row">
-        <div class="form-group">
-            <label for="{{ form.auto_photo.id_for_label }}"><strong>Автофото:</strong></label>
-            <label class="switch">
-                {{ form.auto_photo }}
-                <span class="slider"></span>
-            </label>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="{{ form.auto_photo.id_for_label }}"><strong>Автофото:</strong></label>
+                    <label class="switch">
+                        {{ form.auto_photo }}
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    {{ form.notify_time }}
+                </div>
+            </div>
+
+            {% if form.errors %}
+            <div class="form-errors">
+                {{ form.errors }}
+            </div>
+            {% endif %}
         </div>
-
-        <div class="form-group">
-           {{ form.notify_time }}
-        </div>
-    </div>
-
-    {% if form.errors %}
-    <div class="form-errors">
-        {{ form.errors }}
-    </div>
-    {% endif %}
-</div>
 
         {% endfor %}
     </div>
