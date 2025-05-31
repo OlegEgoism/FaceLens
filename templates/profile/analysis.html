@@ -87,6 +87,13 @@
         document.getElementById('emotion').value = 'all';
         document.querySelector('.date-filter-form').submit();
     }
+
+    function resetFilter() {
+        document.getElementById('date_from').value = '';
+        document.getElementById('date_to').value = '';
+        document.getElementById('emotion').value = 'all';
+        document.querySelector('.date-filter-form').submit();
+    }
 </script>
 
 {% endblock %}
