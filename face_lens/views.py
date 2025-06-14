@@ -78,6 +78,17 @@ def profile(request):
 
 
 @login_required
+def clear_photos(request):
+    """Очистить все фото пользователя"""
+    user = request.user
+    if request.method == 'POST':
+        Photo.objects.filter(user=user).delete()
+        messages.success(request, "Все фото успешно удалены.")
+        return redirect('profile_photos')
+    return render(request, 'profile/clear_photos.html')
+
+
+@login_required
 def profile_edit(request):
     """Редактировать профиль пользователя"""
     if request.method == 'POST':
@@ -296,7 +307,6 @@ def camera_save(request):
                 messages.error(request, f"Ошибка анализа: {e}")
             return redirect('profile_photos')
     return redirect('camera_photo')
-
 
 
 @login_required

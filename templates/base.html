@@ -17,11 +17,11 @@
 
 
 {% if messages %}
-<div class="messages">
-    {% for message in messages %}
-    <div class="message {{ message.tags }}">{{ message }}</div>
-    {% endfor %}
-</div>
+    <div class="messages">
+        {% for message in messages %}
+            <div class="message {{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    </div>
 {% endif %}
 
 
@@ -31,15 +31,15 @@
         <div class="nav-logo"><a href="{% url 'home' %}">FaceLens</a></div>
         <ul class="nav-links">
             {% if user.is_authenticated %}
-            <li><a href="{% url 'camera' %}" class="nav-button">Камера</a></li>
-            <li><a href="{% url 'analysis' %}" class="nav-button">Аналитика</a></li>
-            <li><a href="{% url 'profile_photos' %}" class="nav-button">Фото альбом</a></li>
-            <li><a href="{% url 'profile_settings' %}" class="nav-button">Настройки</a></li>
-            <li><a href="{% url 'profile' %}" class="nav-button">Профиль</a></li>
-            <li><a href="{% url 'logout' %}" class="nav-button">Выйти</a></li>
+                <li><a href="{% url 'camera' %}" class="nav-button">Камера</a></li>
+                <li><a href="{% url 'analysis' %}" class="nav-button">Аналитика</a></li>
+                <li><a href="{% url 'profile_photos' %}" class="nav-button">Фото альбом</a></li>
+                <li><a href="{% url 'profile_settings' %}" class="nav-button">Настройки</a></li>
+                <li><a href="{% url 'profile' %}" class="nav-button">Профиль</a></li>
+                <li><a href="{% url 'logout' %}" class="nav-button">Выйти</a></li>
             {% else %}
-            <li><a href="{% url 'login' %}" class="nav-button">Войти</a></li>
-            <li><a href="{% url 'register' %}" class="nav-button">Регистрация</a></li>
+                <li><a href="{% url 'login' %}" class="nav-button">Войти</a></li>
+                <li><a href="{% url 'register' %}" class="nav-button">Регистрация</a></li>
             {% endif %}
         </ul>
     </div>

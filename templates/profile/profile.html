@@ -1,89 +1,102 @@
 {% extends 'base.html' %}
+<!-- Подключаем Bootstrap для модальных окон -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 
-{% block title %}Профиль {{user.username}}{% endblock %}
+{% block title %}Профиль {{ user.username }}{% endblock %}
 
 {% block content %}
-<h1 class="welcome-title" style="position: relative;">
-    Профиль {{user.username}}
-    <a href="{% url 'profile_edit' %}" class="edit-icon" title="Редактировать">
-        ✏️
-    </a>
-</h1>
-<hr style="margin-bottom: 20px;">
+    <h1 class="welcome-title" style="position: relative;">
+        Профиль {{ user.username }}
+        <a href="{% url 'profile_edit' %}" class="edit-icon" title="Редактировать">
+            ✏️
+        </a>
+    </h1>
+    <hr style="margin-bottom: 20px;">
 
-<form method="post" enctype="multipart/form-data" id="avatar-form">
-    {% csrf_token %}
-    <div class="avatar-wrapper" onclick="document.getElementById('avatar-input').click();">
-        {% if user.avatar %}
-        <img src="{{ user.avatar.url }}" alt="Аватар" class="avatar-image">
-        {% else %}
-        <img src="/media/avatar/default/no_photo.png" alt="Нет фото" class="avatar-image">
-        {% endif %}
-        <span class="avatar-edit-icon">✏️</span>
-    </div>
-    <input type="file" name="avatar" id="avatar-input" accept="image/*" style="display: none;" onchange="document.getElementById('avatar-form').submit();">
-</form>
-<br>
-<div class="profile-details">
-    <p><strong>Имя:</strong> {{ user.first_name|default:"Нет информации" }}</p>
-    <p><strong>Фамилия:</strong> {{ user.last_name|default:"Нет информации" }}</p>
-    <p><strong>Email:</strong> {{ user.email|default:"Нет информации" }}</p>
-    <p><strong>Телефон:</strong>
-        {% if user.phone %}{{ user.phone }}{% else %}Нет информации{% endif %}
-        {% if user.phone_country %} ({{ user.phone_country }}){% endif %}
-    </p>
-    <p><strong>Дата рождения:</strong>
-        {% if user.birthday %}
-        {{ user.birthday|date:"d.m.Y" }}
-        {% else %}
-        Нет информации
-        {% endif %}
-    </p>
-    <p><strong>Возраст:</strong>
-        {% if user.birthday %}
-        {{ user.get_age_display }}
-        {% else %}
-        Нет фотографий
-        {% endif %}
-    </p>
-    <p><strong>Количество фотографий:</strong>
-        {% if all_photos %}
-        {{ all_photos }} шт.
-        {% else %}
-        Нет информации
-        {% endif %}
-    </p>
-    <p style="text-align: center;"><strong>Биография</strong></p>
-    <div>
+    <form method="post" enctype="multipart/form-data" id="avatar-form">
+        {% csrf_token %}
+        <div class="avatar-wrapper" onclick="document.getElementById('avatar-input').click();">
+            {% if user.avatar %}
+                <img src="{{ user.avatar.url }}" alt="Аватар" class="avatar-image">
+            {% else %}
+                <img src="/media/avatar/default/no_photo.png" alt="Нет фото" class="avatar-image">
+            {% endif %}
+            <span class="avatar-edit-icon">✏️</span>
+        </div>
+        <input type="file" name="avatar" id="avatar-input" accept="image/*" style="display: none;" onchange="document.getElementById('avatar-form').submit();">
+    </form>
+    <br>
+    <div class="profile-details">
+        <p><strong>Имя:</strong> {{ user.first_name|default:"Нет информации" }}</p>
+        <p><strong>Фамилия:</strong> {{ user.last_name|default:"Нет информации" }}</p>
+        <p><strong>Email:</strong> {{ user.email|default:"Нет информации" }}</p>
+        <p><strong>Телефон:</strong>
+            {% if user.phone %}{{ user.phone }}{% else %}Нет информации{% endif %}
+            {% if user.phone_country %} ({{ user.phone_country }}){% endif %}
+        </p>
+        <p><strong>Дата рождения:</strong>
+            {% if user.birthday %}
+                {{ user.birthday|date:"d.m.Y" }}
+            {% else %}
+                Нет информации
+            {% endif %}
+        </p>
+        <p><strong>Возраст:</strong>
+            {% if user.birthday %}
+                {{ user.get_age_display }}
+            {% else %}
+                Нет фотографий
+            {% endif %}
+        </p>
+        <p><strong>Количество фотографий:</strong>
+            {% if all_photos %}
+                {{ all_photos }} шт.
+            {% else %}
+                Нет информации
+            {% endif %}
+        </p>
+        <p style="text-align: center;"><strong>Биография</strong></p>
+        <div>
     <span id="bio-short">
         {{ user.bio|default_if_none:"Нет информации"|truncatechars:100|linebreaks }}
         {% if user.bio and user.bio|length > 100 %}
             <a href="#" class="bio-toggle" onclick="toggleBio(event)">Показать</a>
         {% endif %}
     </span>
-        {% if user.bio and user.bio|length > 100 %}
-        <span id="bio-full" style="display: none;">
+            {% if user.bio and user.bio|length > 100 %}
+                <span id="bio-full" style="display: none;">
         {{ user.bio|linebreaks }}
         <a href="#" class="bio-toggle" onclick="toggleBio(event)">Скрыть</a>
     </span>
-        {% endif %}
+            {% endif %}
+        </div>
     </div>
+    <form id="clear-photos-form" method="post" action="{% url 'clear_photos' %}">
+        {% csrf_token %}
+        <button type="button" class="btn btn-reset" onclick="confirmDeletion()">Удалить все фото</button>
+    </form>
 
-</div>
-
-
-<script>
-    function toggleBio(event) {
-        event.preventDefault();
-        const shortText = document.getElementById('bio-short');
-        const fullText = document.getElementById('bio-full');
-        if (shortText.style.display === 'none') {
-            shortText.style.display = 'inline';
-            fullText.style.display = 'none';
-        } else {
-            shortText.style.display = 'none';
-            fullText.style.display = 'inline';
+    <script type="text/javascript">
+        function confirmDeletion() {
+            if (confirm("Вы уверены, что хотите удалить все фото? Это действие нельзя отменить.")) {
+                // Если пользователь подтвердил, отправляем форму
+                document.getElementById('clear-photos-form').submit();
+            }
         }
-    }
-</script>
+    </script>
+    <script>
+        function toggleBio(event) {
+            event.preventDefault();
+            const shortText = document.getElementById('bio-short');
+            const fullText = document.getElementById('bio-full');
+            if (shortText.style.display === 'none') {
+                shortText.style.display = 'inline';
+                fullText.style.display = 'none';
+            } else {
+                shortText.style.display = 'none';
+                fullText.style.display = 'inline';
+            }
+        }
+    </script>
 {% endblock %}
